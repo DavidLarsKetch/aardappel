@@ -2,11 +2,11 @@ module.exports = function(grunt) {
   grunt.initConfig({
     "angular-builder": {
       options: {
-        mainModule: "PinterestApp",
+        mainModule: "DocApp",
         externalModules: ["ngRoute"]
       },
       app: {
-        src: "./app/**/*.js",
+        src: "./assets/js/**/*.js",
         dest: "./dist/project.js"
       }
     },
@@ -17,22 +17,22 @@ module.exports = function(grunt) {
         globalstrict: true,
         globals: { angular: true }
       },
-      files: ["./app/**/*.js"]
+      files: ["./assets/js/**/*.js"]
     },
     sass: {
       dist: {
         files: {
-          "./css/main.css": "./sass/main.scss"
+          "./assets/stylesheets/main.css": "./assets/sass/main.scss"
         }
       }
     },
     watch: {
       javascripts: {
-        files: ["./app/**/*.js"],
+        files: ["./assets/js/**/*.js"],
         tasks: ["jshint", "angular-builder"]
       },
       sass: {
-        files: ["./sass/**/*.scss"],
+        files: ["./assets/sass/**/*.scss"],
         tasks: ["sass"]
       }
     }
