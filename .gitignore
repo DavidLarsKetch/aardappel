@@ -4,3 +4,4 @@ package-lock.json
 stylesheets/
 assets/config/
 assets/js/config/
+.sass-cache/

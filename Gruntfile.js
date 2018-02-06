@@ -1,40 +1,46 @@
 module.exports = function(grunt) {
   grunt.initConfig({
-    browserify: {
-      'dist/bundle.js': ['assets/js/main.js']
+    "angular-builder": {
+      options: {
+        mainModule: "DocApp",
+        externalModules: ["ngRoute"]
+      },
+      app: {
+        src: "./assets/js/**/*.js",
+        dest: "./dist/project.js"
+      }
     },
     jshint: {
-      files: ["assets/js/**/*.js"],
       options: {
-        predef: ["document", "console"],
+        predef: ["document", "console", "firebase"],
         esnext: true,
         globalstrict: true,
-        globals: {},
-        browserify: true
-      }
+        globals: { angular: true }
+      },
+      files: ["./assets/js/**/*.js"]
     },
     sass: {
       dist: {
         files: {
-          "assets/stylesheets/main.css": "assets/sass/main.scss"
+          "./assets/stylesheets/main.css": "./assets/sass/main.scss"
         }
       }
     },
     watch: {
       javascripts: {
-        files: ["assets/js/**/*.js"],
-        tasks: ["jshint", "browserify"]
+        files: ["./assets/js/**/*.js"],
+        tasks: ["jshint", "angular-builder"]
       },
       sass: {
-        files: ["assets/sass/**/*.scss"],
+        files: ["./assets/sass/**/*.scss"],
         tasks: ["sass"]
       }
     }
   });
 
   require("matchdep")
-    .filter("grunt-*")
+    .filterDev("grunt-*")
     .forEach(grunt.loadNpmTasks);
 
-  grunt.registerTask("default", ['jshint', 'sass', 'browserify', 'watch']);
+  grunt.registerTask("default", ["jshint", "sass", "angular-builder", "watch"]);
 };

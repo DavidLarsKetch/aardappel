@@ -3,7 +3,13 @@
   <head>
     <meta charset="utf-8">
     <title>Front-End Capstone</title>
+    <script src='node_modules/firebase/firebase.js'></script>
+    <script src="node_modules/angular/angular.min.js"></script>
+    <script src="node_modules/angular-route/angular-route.min.js"></script>
+    <link rel="stylesheet" href="/assets/stylesheets/main.css">
   </head>
-  <body>
+  <body ng-app="DocApp">
+    <div ng-view></div>
+    <script src="dist/project.js" charset="utf-8"></script>
   </body>
 </html>
