@@ -1,40 +1,46 @@
 module.exports = function(grunt) {
   grunt.initConfig({
-    browserify: {
-      'dist/bundle.js': ['assets/js/main.js']
+    "angular-builder": {
+      options: {
+        mainModule: "PinterestApp",
+        externalModules: ["ngRoute"]
+      },
+      app: {
+        src: "./app/**/*.js",
+        dest: "./dist/project.js"
+      }
     },
     jshint: {
-      files: ["assets/js/**/*.js"],
       options: {
-        predef: ["document", "console"],
+        predef: ["document", "console", "firebase"],
         esnext: true,
         globalstrict: true,
-        globals: {},
-        browserify: true
-      }
+        globals: { angular: true }
+      },
+      files: ["./app/**/*.js"]
     },
     sass: {
       dist: {
         files: {
-          "assets/stylesheets/main.css": "assets/sass/main.scss"
+          "./css/main.css": "./sass/main.scss"
         }
       }
     },
     watch: {
       javascripts: {
-        files: ["assets/js/**/*.js"],
-        tasks: ["jshint", "browserify"]
+        files: ["./app/**/*.js"],
+        tasks: ["jshint", "angular-builder"]
       },
       sass: {
-        files: ["assets/sass/**/*.scss"],
+        files: ["./sass/**/*.scss"],
         tasks: ["sass"]
       }
     }
   });
 
   require("matchdep")
-    .filter("grunt-*")
+    .filterDev("grunt-*")
     .forEach(grunt.loadNpmTasks);
 
-  grunt.registerTask("default", ['jshint', 'sass', 'browserify', 'watch']);
+  grunt.registerTask("default", ["jshint", "sass", "angular-builder", "watch"]);
 };
