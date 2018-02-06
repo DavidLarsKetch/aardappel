@@ -1,5 +1,18 @@
 "use strict";
 
+const isAuth = ($window, AuthFactory) =>
+  new Promise((resolve, reject) =>
+    AuthFactory.isAuthenticated()
+    .then(bool => {
+      if (bool) {
+        resolve();
+      } else {
+        $window.location.href = '#!/login';
+        reject();
+      }
+    })
+  );
+
 angular.module("DocApp", ["ngRoute"])
 // Is this constant necessary if FirebaseCredentials has the URL?
 .constant("FBUrl", "https://davidlarsketch-8da73.firebaseio.com/fe-cap")
