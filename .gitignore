@@ -2,4 +2,5 @@ node_modules/
 dist/
 package-lock.json
 stylesheets/
-assets/config/credentials.js
+assets/config/
+assets/js/config/
