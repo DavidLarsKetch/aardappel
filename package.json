@@ -1,5 +1,5 @@
 {
-  "name": "Doc Editor (working title)",
+  "name": "doc-editor",
   "version": "0.0.1",
   "description": "A lightweight mobile browser app enabling teams to share & copyedit documents while on the go.",
   "main": "app.js",
@@ -30,6 +30,7 @@
   "dependencies": {
     "angular": "^1.6.5",
     "angular-route": "^1.6.5",
-    "firebase": "^4.9.0"
+    "firebase": "^4.9.0",
+    "npm": "^5.6.0"
   }
 }
