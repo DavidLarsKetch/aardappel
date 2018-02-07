@@ -1,4 +1,12 @@
 <div>
   {{test}}
 </div>
+<div>
+  <input type="text" name="team-name" ng-model="team.displayName" placeholder="Enter Team Name">
+  <input type="password" name="password" ng-model="team.password" placeholder="Enter password">
+  <input type="password" name="reenter" ng-model="reenter" placeholder="Reenter password">
+</div>
+<div>
+  <button type="button" name="submit" ng-click="registerTeam()">SUBMIT</button>
+</div>
 <a ng-href="#!/team-login">Back to team login</a>
