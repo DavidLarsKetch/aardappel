@@ -1,4 +1,21 @@
 <div>
   {{test}}
 </div>
-<a ng-href="#!/login">Back to login</a>
+<div>
+  <a href="#!/team-login/register"><h3>Create a new team</h3></a>
+</div>
+<h3>Joined Teams</h3>
+<div ng-repeat="team in usersTeams">
+  <a ng-href="#!/docs/{{team.firebaseID}}">{{team.displayName}}</a>
+</div>
+<h3>Join a New Team</h3>
+<div ng-repeat="team in newTeams">
+  <button type="button" name="button" ng-click="team.showPasswordInput=true">{{team.displayName}}</button>
+  <div ng-show="team.showPasswordInput">
+    <input type="password" name="password" ng-model="team.attempt" placeholder="Enter password">
+    <button type="button" name="submit" ng-click="addUserToTeam(team)">SUBMIT</button>
+    <button type="button" name="cancel" ng-click="team.showPasswordInput=false">CANCEL</button>
+  </div>
+</div>
+<hr>
+<button type="button" name="logout" ng-click="userLogout()">LOGOUT</button>
