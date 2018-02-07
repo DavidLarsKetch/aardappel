@@ -1,6 +1,7 @@
 "use strict";
 
-angular.module("DocApp").controller("TeamLoginCtrl", function($scope, $location, TeamFactory) {
+angular.module("DocApp").controller("TeamLoginCtrl",
+function($scope, $location, $window, AuthFactory, TeamFactory) {
   const uid = firebase.auth().currentUser.uid;
   $scope.usersTeams = [];
   $scope.newTeams = [];
@@ -34,4 +35,7 @@ angular.module("DocApp").controller("TeamLoginCtrl", function($scope, $location,
       .catch(err => console.log(err));
     }
   };
+
+  $scope.userLogout = () =>
+    AuthFactory.logout().then(() => $window.location.href = `#!/login`);
 });

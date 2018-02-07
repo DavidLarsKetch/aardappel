@@ -1,9 +1,14 @@
 <div>
   {{test}}
 </div>
+<div>
+  <a href="#!/team-login/register"><h3>Create a new team</h3></a>
+</div>
+<h3>Joined Teams</h3>
 <div ng-repeat="team in usersTeams">
   <a ng-href="#!/docs/{{team.firebaseID}}">{{team.displayName}}</a>
 </div>
+<h3>Join a New Team</h3>
 <div ng-repeat="team in newTeams">
   <button type="button" name="button" ng-click="team.showPasswordInput=true">{{team.displayName}}</button>
   <div ng-show="team.showPasswordInput">
@@ -12,9 +17,5 @@
     <button type="button" name="cancel" ng-click="team.showPasswordInput=false">CANCEL</button>
   </div>
 </div>
-<div>
-  <a href="#!/team-login/register">Create a new team</a>
-</div>
-<div>
-  <a ng-href="#!/login">Back to login</a>
-</div>
+<hr>
+<button type="button" name="logout" ng-click="userLogout()">LOGOUT</button>
