@@ -22,9 +22,40 @@ angular.module("DocApp", ["ngRoute"])
     templateUrl: "assets/partials/login",
     controller: "LoginCtrl"
   })
+  .when('/register', {
+    templateUrl: "assets/partials/user-register",
+    controller: "UserRegisterCtrl"
+  })
   .when('/team-login', {
     templateUrl: "assets/partials/team-login",
     controller: "TeamLoginCtrl",
+    resolve: {isAuth}
+  })
+  .when('team-login/register', {
+    templateUrl: "assets/partials/team-register",
+    controller: "TeamRegister",
+    resolve: {isAuth}
+  })
+  // TODO: All routes below will require a second isAuth() type check for whether
+  // or not user has access to that team's documents
+  .when('docs/:team_id', {
+    templateUrl: "assets/partials/all-docs",
+    controller: "AllDocsCtrl",
+    resolve: {isAuth}
+  })
+  .when('docs/:team_id/new', {
+    templateUrl: "assets/partials/new-doc",
+    controller: "NewDocCtrl",
+    resolve: {isAuth}
+  })
+  .when('docs/:team_id/pending/:doc_id', {
+    templateUrl: "assets/partials/review-pending",
+    controller: "ReviewPendingCtrl",
+    resolve: {isAuth}
+  })
+  .when('docs/:team_id/completed/:doc_id', {
+    templateUrl: "assets/partials/review-completed",
+    controller: "ReviewCompletedCtrl",
     resolve: {isAuth}
   })
   .otherwise('/login')
