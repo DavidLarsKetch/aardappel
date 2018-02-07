@@ -1,5 +1,5 @@
 "use strict";
 
 angular.module("DocApp").controller("UserRegisterCtrl", function($scope) {
-  $scope.test = "Sup";
+  $scope.test = "Sup, UserRegisterCtrl";
 });
