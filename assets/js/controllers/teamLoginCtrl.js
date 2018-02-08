@@ -1,7 +1,7 @@
 "use strict";
 
 angular.module("DocApp").controller("TeamLoginCtrl",
-function($scope, $location, $window, AuthFactory, TeamFactory) {
+function($scope, $location, $route, $window, AuthFactory, TeamFactory) {
   const uid = firebase.auth().currentUser.uid;
   $scope.usersTeams = [];
   $scope.newTeams = [];
@@ -21,9 +21,7 @@ function($scope, $location, $window, AuthFactory, TeamFactory) {
 
   TeamFactory.getTeams()
   .then(teams => {
-    for (let id in teams) {
-      checkUserAccess(id);
-    }
+    for (let id in teams) checkUserAccess(id);
   })
   .catch(err => console.log(err));
 
@@ -38,4 +36,13 @@ function($scope, $location, $window, AuthFactory, TeamFactory) {
 
   $scope.userLogout = () =>
     AuthFactory.logout().then(() => $window.location.href = `#!/login`);
+
+  $scope.revokeAccess = firebaseID =>
+    TeamFactory.getTeam(firebaseID)
+    .then(({users}) => {
+      users = users.filter(user => user !== uid);
+      return TeamFactory.patchTeam(firebaseID, {users});
+    })
+    .then(() => $route.reload())
+    .catch(err => console.log(err));
 });
