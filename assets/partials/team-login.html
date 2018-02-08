@@ -10,6 +10,7 @@
 <h3>Joined Teams</h3>
 <div ng-repeat="team in usersTeams | filter: {displayName: searchTerm}">
   <a ng-href="#!/docs/{{team.firebaseID}}">{{team.displayName}}</a>
+  <button type="button" name="leave" ng-click="revokeAccess(team.firebaseID)">Leave Team</button>
 </div>
 <h3>Join a New Team</h3>
 <div ng-repeat="team in newTeams | filter: {displayName: searchTerm}">
