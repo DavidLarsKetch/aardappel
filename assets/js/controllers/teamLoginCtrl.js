@@ -10,8 +10,7 @@ function($scope, $location, $route, $window, AuthFactory, TeamFactory) {
   const checkUserAccess = firebaseID =>
     TeamFactory.getTeam(firebaseID)
     .then(teamData => {
-      let check = teamData.users.indexOf(uid);
-      if (check >= 0) {
+      if (teamData.users.includes(uid)) {
         $scope.usersTeams.push(teamData);
       } else {
         $scope.newTeams.push(teamData);
