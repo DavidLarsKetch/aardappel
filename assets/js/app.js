@@ -14,8 +14,6 @@ const isAuth = ($window, AuthFactory) =>
   );
 
 angular.module("DocApp", ["ngRoute"])
-// Is this constant necessary if FirebaseCredentials has the URL?
-.constant("FBUrl", "https://davidlarsketch-8da73.firebaseio.com/fe-cap")
 .config($routeProvider =>
   $routeProvider
   .when('/login', {
@@ -36,8 +34,6 @@ angular.module("DocApp", ["ngRoute"])
     controller: "TeamRegisterCtrl",
     resolve: {isAuth}
   })
-  // TODO: All routes below will require a second isAuth() type check for whether
-  // or not user has access to that team's documents
   .when('/docs/:team_id', {
     templateUrl: "assets/partials/all-docs",
     controller: "AllDocsCtrl",
