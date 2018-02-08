@@ -4,6 +4,13 @@
 <h3>
   {{team.displayName}}
 </h3>
-<button type="button" name="link">
-  <a ng-href="#!/team-login">Switch Teams</a>
-</button>
+<div>
+  <button type="button" name="new-doc">
+    <a ng-href="#!/docs/{{team.firebaseID}}/new">New Doc</a>
+  </button>
+</div>
+<div>
+  <button type="button" name="link">
+    <a ng-href="#!/team-login">Switch Teams</a>
+  </button>
+</div>
