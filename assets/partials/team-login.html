@@ -2,14 +2,17 @@
   {{test}}
 </div>
 <div>
+  <input type="search" ng-model="searchTerm" placeholder="Search for a team">
+</div>
+<div>
   <a href="#!/team-login/register"><h3>Create a new team</h3></a>
 </div>
 <h3>Joined Teams</h3>
-<div ng-repeat="team in usersTeams">
+<div ng-repeat="team in usersTeams | filter: {displayName: searchTerm}">
   <a ng-href="#!/docs/{{team.firebaseID}}">{{team.displayName}}</a>
 </div>
 <h3>Join a New Team</h3>
-<div ng-repeat="team in newTeams">
+<div ng-repeat="team in newTeams | filter: {displayName: searchTerm}">
   <button type="button" name="button" ng-click="team.showPasswordInput=true">{{team.displayName}}</button>
   <div ng-show="team.showPasswordInput">
     <input type="password" name="password" ng-model="team.attempt" placeholder="Enter password">
