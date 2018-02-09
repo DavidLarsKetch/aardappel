@@ -7,7 +7,7 @@ function($scope, $location, $route, $window, AuthFactory, TeamFactory) {
   $scope.newTeams = [];
   $scope.test = `Sup, TeamLoginCtrl. currentUser: ${firebase.auth().currentUser.uid}`;
 
-  const checkUserAccess = firebaseID =>
+  const sortUserAccess = firebaseID =>
     TeamFactory.getTeam(firebaseID)
     .then(teamData => {
       if (teamData.users.includes(uid)) {
@@ -20,7 +20,7 @@ function($scope, $location, $route, $window, AuthFactory, TeamFactory) {
 
   TeamFactory.getTeams()
   .then(teams => {
-    for (let id in teams) checkUserAccess(id);
+    for (let id in teams) sortUserAccess(id);
   })
   .catch(err => console.log(err));
 
