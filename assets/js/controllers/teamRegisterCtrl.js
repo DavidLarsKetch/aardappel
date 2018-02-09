@@ -14,7 +14,6 @@ angular.module("DocApp").controller("TeamRegisterCtrl", function($scope, $locati
     // TODO: Check for whether team name already exists, deny registration if so
       TeamFactory.postTeam($scope.team)
       .then(teamID => {
-        console.log(teamID);
         $location.path(`/docs/${teamID}`);
       });
   };
