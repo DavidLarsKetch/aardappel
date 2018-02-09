@@ -2,15 +2,10 @@
 
 angular.module("DocApp").controller("ReviewCompletedCtrl", function($scope, $location, $routeParams, TeamFactory) {
   $scope.test = "Sup, ReviewCompletedCtrl";
-  const uid = firebase.auth().currentUser.uid;
-  //Verifies user has access to team
-  TeamFactory.getTeam($routeParams.team_id)
-  .then(teamData => {
-    if (teamData.users.includes(uid)) {
-      $scope.team = teamData;
-    } else {
-      $location.path('/team-login');
-    }
-  })
-  .catch(err => console.log(err));
+  
+  //Verifies user has access to team, redirects to team-login if not
+  const loggedInUid = firebase.auth().currentUser.uid;
+  TeamFactory.verifyUserAccess($routeParams.team_id, loggedInUid)
+  .then(teamData => $scope.team = teamData)
+  .catch(() => $location.path('/team-login'));
 });
