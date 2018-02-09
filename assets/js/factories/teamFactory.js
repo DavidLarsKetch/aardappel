@@ -37,5 +37,18 @@ angular.module("DocApp").factory("TeamFactory", function($q, $http, FirebaseCred
       .catch(err => reject(err))
     );
 
-  return {getTeams, getTeam, patchTeam, postTeam};
+  const verifyUserAccess = (teamID, loggedInUid) =>
+    $q((resolve, reject) =>
+      getTeam(teamID)
+      .then(teamData => {
+        if (teamData.users.includes(loggedInUid)) {
+          resolve(teamData);
+        } else {
+          reject();
+        }
+      })
+      .catch(err => reject(err))
+    );
+
+  return {getTeams, getTeam, patchTeam, postTeam, verifyUserAccess};
 });
