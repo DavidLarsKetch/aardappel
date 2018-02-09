@@ -32,14 +32,14 @@
     <h4>My Documents Completed</h4>
     <div ng-repeat="doc in usersDocs | filter: {completed: true}">
       <a ng-href="#!/docs/{{team.firebaseID}}/completed/{{doc.firebaseID}}">{{doc.title}}</a>
-      <span> - {{doc.displayName}}</span>
+      <span> completed by - {{doc.reviewerName}}</span>
     </div>
   </div>
   <div>
     <h4>Team Documents Completed</h4>
     <div ng-repeat="doc in teamDocs | filter: {completed: true}">
       <a ng-href="#!/docs/{{team.firebaseID}}/completed/{{doc.firebaseID}}">{{doc.title}}</a>
-      <span> - {{doc.displayName}}</span>
+      <span> - {{doc.displayName}}'s doc, completed by - {{doc.reviewerName}}</span>
     </div>
   </div>
 </div>

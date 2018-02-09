@@ -10,13 +10,27 @@ angular.module("DocApp").controller("AllDocsCtrl", function($scope, $location, $
   // Attaches display name for the doc owner. all-docs.html prints display
   // name for docs not owned by user.
   // TODO: attach display name for final reviewer, if doc is completed: true
-  const getDisplayNameForEachDoc = docData => {
-    let keys = Object.keys(docData);
+  const getDisplayNameForEachDoc = () => {
+    let keys = Object.keys(docs);
     let promises = [];
     keys.forEach(key => promises.push(
-      UserFactory.getUser(docData[key].uid)
-      .then(userData => docData[key].displayName = userData.displayName)
+      UserFactory.getUser(docs[key].uid)
+      .then(userData => docs[key].displayName = userData.displayName)
     ));
+    return Promise.all(promises);
+  };
+
+  const getReviewerNameForEachCompleted = () => {
+    let keys = Object.keys(docs);
+    let promises = [];
+    keys.forEach(key => {
+      if (docs[key].reviewer)
+        promises.push(
+          UserFactory.getUser(docs[key].reviewer)
+          .then(userData => docs[key].reviewerName = userData.displayName)
+          .catch(err => console.log(err))
+        );
+    });
     return Promise.all(promises);
   };
 
@@ -48,7 +62,11 @@ angular.module("DocApp").controller("AllDocsCtrl", function($scope, $location, $
     DocFactory.getDocs($scope.team.firebaseID)
     .then(docData => {
       docs = docData;
-      return getDisplayNameForEachDoc(docData);
+      return getDisplayNameForEachDoc();
+    })
+    .then(() => {
+      console.log(docs);
+      getReviewerNameForEachCompleted();
     })
     .then(() => sortDocs())
     .catch(err => console.log(err));
