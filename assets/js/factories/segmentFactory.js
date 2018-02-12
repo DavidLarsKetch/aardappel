@@ -3,16 +3,17 @@
 angular.module("DocApp").factory("SegmentFactory", function($q, $http, FirebaseCredentials) {
   const deleteSegment = id =>
     $q((resolve, reject) =>
-      $http.delete(`${FirebaseCredentials}/segments/${id}.json`)
+      $http.delete(`${FirebaseCredentials.databaseURL}/segments/${id}.json`)
       .then(() => resolve())
-      .reject(err => reject(err))
+      .catch(err => reject(err))
     );
 
   const getSegments = id =>
     $q((resolve, reject) =>
-      $http.get(`${FirebaseCredentials}/segments.json?orderBy="doc_id"&equalTo="${id}"`)
+      $http.get(`${FirebaseCredentials.databaseURL}/segments.json?orderBy="doc_id"&equalTo="${id}"`)
       .then(({data}) => resolve(data))
-      .reject(err => console.log(err))
+      .catch(err => console.log(err))
+    );
     );
 
   return {deleteSegment, getSegments};
