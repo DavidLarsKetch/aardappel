@@ -9,7 +9,6 @@ angular.module("DocApp").controller("AllDocsCtrl", function($scope, $location, $
 
   // Attaches display name for the doc owner. all-docs.html prints display
   // name for docs not owned by user.
-  // TODO: attach display name for final reviewer, if doc is completed: true
   const getDisplayNameForEachDoc = () => {
     let keys = Object.keys(docs);
     let promises = [];
@@ -65,7 +64,6 @@ angular.module("DocApp").controller("AllDocsCtrl", function($scope, $location, $
       return getDisplayNameForEachDoc();
     })
     .then(() => {
-      console.log(docs);
       getReviewerNameForEachCompleted();
     })
     .then(() => sortDocs())
