@@ -9,7 +9,17 @@
 </p>
 <span>{{doc.title}}</span>
 <i> - {{doc.displayName}}</i>
-<button type="button" name="button">Comment</button>
+<button type="button" name="comment" ng-click="toggleCommentBox()">Comment</button>
 <div>
-  <span id="{{segment.firebaseID}}" ng-repeat="segment in segments" class="{{segment.classes}}" contenteditable="true" ng-blur="diff(segment.firebaseID, segment.text)">{{segment.text}} </span>
+  <span id="{{segment.firebaseID}}" ng-repeat="segment in segments" class="{{segment.classes}}" contenteditable="true" ng-blur="diff(segment.firebaseID, segment.text)" ng-click="showCommentBox(segment)">{{segment.text}} </span>
+</div>
+<div ng-show="commentActive">
+  <div id="newCommentBox" class="new-comment-box" contenteditable="true">
+  </div>
+  <button type="button" name="saveComment" ng-click="saveComment()">Save</button>
+  <button type="button" name="cancelComment" ng-click="toggleCommentBox()">Cancel</button>
+</div>
+<div ng-show="show" class="inline-comment-box">
+  <span id="updatedCommentText" contenteditable="true" ng-blur="updateComment()">{{comment.text}}</span>
+  <p>- {{comment.displayName}}</p>
 </div>
