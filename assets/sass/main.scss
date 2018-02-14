@@ -1,3 +1,14 @@
+.added {
+  background-color: lightgreen;
+}
+
+.deleted {
+  background-color: lightcoral;
+}
+
+* :focus {
+  outline: none;
+}
 .new-doc-text {
   border: 1px solid;
   height: 400px;

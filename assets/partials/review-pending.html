@@ -1,7 +1,7 @@
 <div>
   {{test}}
 </div>
-<h3>{{team.displayName}}</h3>
+<h3>{{teamName}}</h3>
 <p>
   <button type="button" name="completed" ng-click="completed()">Completed</button>
   <button type="button" name="save" ng-click="save()">Save</button>
@@ -9,6 +9,7 @@
 </p>
 <span>{{doc.title}}</span>
 <i> - {{doc.displayName}}</i>
-<div ng-model="doc.text" contenteditable="true">
-  {{doc.text}}
+<button type="button" name="button">Comment</button>
+<div>
+  <span id="{{segment.firebaseID}}" ng-repeat="segment in segments" class="{{segment.classes}}" contenteditable="true" ng-blur="diff(segment.firebaseID, segment.text)">{{segment.text}} </span>
 </div>

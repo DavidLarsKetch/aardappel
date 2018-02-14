@@ -2,4 +2,18 @@
   {{test}}
 </div>
 <h3>{{team.displayName}}</h3>
-<a ng-href="#!/docs">Back to all documents</a>
+<button type="button" name="button">
+  <a ng-href="#!/docs/{{doc.team_id}}">All Docs</a>
+</button>
+<div>
+  <span>{{doc.title}}</span>
+  <i> - {{doc.displayName}}</i>
+</div>
+<div>
+  <button type="button" name="next">Next Comment</button>
+  <button type="button" name="previous">Prev. Comment</button>
+  <button type="button" name="accept-all">Accept All</button>
+</div>
+<div>
+  <span id="{{segment.firebaseID}}" ng-repeat="segment in segments" class="{{segment.classes}}" contenteditable="true" ng-blur="diff(segment.firebaseID, segment.text)" ng-bind-html="{{segment.text}}"> </span>
+</div>
