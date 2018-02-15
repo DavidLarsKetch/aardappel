@@ -101,7 +101,12 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     })
     // Gets updated data and reprints to the DOM
     .then(() => SegmentFactory.getSegments(thisDocID))
-    .then(segments => $scope.segments = segments)
+    .then(segments => {
+      $scope.segments = segments;
+    // Fix for user needing to click twice away from segment to get
+    // update to print to DOM
+      $scope.$apply();
+    })
     .catch(err => console.log(err));
   };
 
@@ -243,7 +248,6 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     // If the original segment has a 'classes' property AND is the string
     // being commented upon
         if ($scope.segments[originalSegmentIdx].hasOwnProperty("classes") && newSegments[i].text === sel.toString()) {
-          console.log("condition 1 passed");
     // Split the original segments 'classes' string into an array
           newSegments[i].classes = $scope.segments[originalSegmentIdx].classes.split(' ');
     // Adds the "commented" class to that 'classes' array
@@ -260,7 +264,6 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
           );
     // If the original segment has a 'classes' property
         } else if ($scope.segments[originalSegmentIdx].hasOwnProperty("classes")) {
-            console.log("condition 2 passed");
     // Adds 'classes' property from the original segment
             newSegments[i].classes = $scope.segments[originalSegmentIdx].classes.split(' ');
     // (5) Pushes that new segment to Promise.all(promises)
