@@ -194,6 +194,117 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     }
   };
 
+////// Toggles displaying the commentBox where comments are inserted
+  $scope.toggleCommentBox = () => {
+    $scope.commentActive = $scope.commentActive ? false : true;
+    document.getElementById("newCommentBox").innerHTML = '';
+  };
+
+////// Saves comments to database. (1) Constructs necessary pieces for
+    // updating, (2) deletes old segment being commented upon, (3)
+    // splits segment into parts, (4) assigns remaining properties,
+    // retaining classes subject to conditions, (5) posts new segments,
+    // (6) updates segments succeeding new ones with their up-to-date
+    // doc_order
+  $scope.saveComment = () => {
+    // (1)
+    let promises = [];
+    let comment = {
+      uid: loggedInUid,
+      segment_id: null,
+      text: document.getElementById("newCommentBox").innerHTML.trim(),
+    };
+    let sel = document.getSelection();
+    let selParentID = sel.focusNode.parentElement.id;
+
+    let originalSegmentIdx = $scope.segments.findIndex(
+      segment => segment.firebaseID === selParentID
+    );
+
+    // (2) deletes old segment from DB
+    SegmentFactory.deleteSegment(selParentID)
+    .then(() => {
+    // (3) Breaks apart segments based upon the selected div
+      let newSegments = SegmentFactory.breakOutSegment(
+        selParentID, sel.baseOffset, sel.focusOffset
+      );
+
+      let j = originalSegmentIdx;
+
+      for (let i = 0; i < newSegments.length; i++) {
+    // (4) Converts each newSegment element into an object
+        newSegments[i] = {
+          doc_id: thisDocID,
+          doc_order: j,
+          uid: $scope.doc.uid,
+          text: newSegments[i]
+        };
+
+    // If the original segment has a 'classes' property AND is the string
+    // being commented upon
+        if ($scope.segments[originalSegmentIdx].hasOwnProperty("classes") && newSegments[i].text === sel.toString()) {
+          console.log("condition 1 passed");
+    // Split the original segments 'classes' string into an array
+          newSegments[i].classes = $scope.segments[originalSegmentIdx].classes.split(' ');
+    // Adds the "commented" class to that 'classes' array
+          newSegments[i].classes.push("commented");
+    // Pushes that new segment to Promise.all(promises)
+          promises.push(
+            SegmentFactory.postSegment(newSegments[i])
+    // (5) Then posts the comment related to that commented upon segment to
+    // the DB, using the firebaseID returned by posting that segment
+            .then(({name}) => {
+              comment.segment_id = name;
+              return CommentFactory.postComment(comment);
+            })
+          );
+    // If the original segment has a 'classes' property
+        } else if ($scope.segments[originalSegmentIdx].hasOwnProperty("classes")) {
+            console.log("condition 2 passed");
+    // Adds 'classes' property from the original segment
+            newSegments[i].classes = $scope.segments[originalSegmentIdx].classes.split(' ');
+    // (5) Pushes that new segment to Promise.all(promises)
+            promises.push(SegmentFactory.postSegment(newSegments[i]));
+
+    // If the segment is the commented upon segment AND does not have
+    // any suggested edits already
+          } else if (newSegments[i].text === sel.toString()) {
+            newSegments[i].classes = ["commented"];
+    // (5) Then posts the comment related to that commented upon segment to
+    // the DB, using the firebaseID returned by posting that segment
+            promises.push(
+              SegmentFactory.postSegment(newSegments[i])
+              .then(({name}) => {
+                comment.segment_id = name;
+                return CommentFactory.postComment(comment);
+              })
+            );
+
+          } else {
+            promises.push(SegmentFactory.postSegment(newSegments[i]));
+          }
+          j++;
+        }
+    // (6) updates segments coming after new segments with new doc_order
+      for (let i = originalSegmentIdx + 1; i < $scope.segments.length; i++) {
+        promises.push(SegmentFactory.patchSegment(
+          $scope.segments[i].firebaseID,
+          {doc_order: $scope.segments[i].doc_order - 1 + newSegments.length}
+        ));
+      }
+
+      return Promise.all(promises);
+    })
+    // Reprints segments after getting them
+    .then(() => SegmentFactory.getSegments(thisDocID))
+    .then(segments => {
+      $scope.segments = segments;
+    // Clears & closes comment box
+      document.getElementById("newCommentBox").innerHTML = '';
+      $scope.showNewCommentBox = false;
+    })
+    .catch(err => console.log(err));
+  };
 
 ////// Toggles showing the reviewBox with the review item & its classes
   $scope.activateReviewBox = segment => {
