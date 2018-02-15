@@ -45,13 +45,13 @@ angular.module("DocApp", ["ngRoute"])
     resolve: {isAuth}
   })
   .when('/docs/:team_id/pending/:doc_id', {
-    templateUrl: "assets/partials/review-pending",
-    controller: "ReviewPendingCtrl",
+    templateUrl: "assets/partials/review",
+    controller: "ReviewCtrl",
     resolve: {isAuth}
   })
   .when('/docs/:team_id/completed/:doc_id', {
-    templateUrl: "assets/partials/review-completed",
-    controller: "ReviewCompletedCtrl",
+    templateUrl: "assets/partials/review",
+    controller: "ReviewCtrl",
     resolve: {isAuth}
   })
   .otherwise('/login')
