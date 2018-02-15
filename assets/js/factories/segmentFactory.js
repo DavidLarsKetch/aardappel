@@ -2,8 +2,33 @@
 
 angular.module("DocApp").factory("SegmentFactory", function($q, $http, FirebaseCredentials) {
   const segmentRegEx = new RegExp(/(\S.*?[a-z]+[.?!])(?=\s+|$)/gm);
-
+  // TODO: rename to segmentTextBySentence since other segmentations might be
+  // needed later
   const segmentText = text => text.match(segmentRegEx);
+
+  const breakOutSegment = (segmentID, idx, range) => {
+    let whole = document.getElementById(segmentID).innerHTML.trim();
+    let segments = [];
+    // TODO: REFACTOR
+    if (idx === 0){
+      segments.push(
+        whole.substring(idx, range),
+        whole.substring(range)
+      );
+    } else if (range === whole.length) {
+      segments.push(
+        whole.substring(0, idx),
+        whole.substring(idx)
+      );
+    } else {
+      segments.push(
+        whole.substring(0, idx),
+        whole.substring(idx, range),
+        whole.substring(range)
+      );
+    }
+    return segments;
+  };
 
   const formatData = segments => {
     let keys = Object.keys(segments);
@@ -50,9 +75,9 @@ angular.module("DocApp").factory("SegmentFactory", function($q, $http, FirebaseC
   const postSegment = segment =>
     $q((resolve, reject) =>
       $http.post(`${FirebaseCredentials.databaseURL}/segments.json`, JSON.stringify(segment))
-      .then(data => resolve(data))
+      .then(({data}) => resolve(data))
       .catch(err => console.log(err))
     );
 
-  return {deleteSegment, getSegments, patchSegment, postSegment, segmentText};
+  return {breakOutSegment, deleteSegment, getSegments, patchSegment, postSegment, segmentText};
 });

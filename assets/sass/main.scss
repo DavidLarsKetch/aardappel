@@ -2,6 +2,22 @@
   background-color: lightgreen;
 }
 
+.new-comment-box {
+  border: 1px solid;
+  height: 100px;
+  padding: .5rem;
+  width: 400px;
+}
+
+.inline-comment-box {
+  border: 1px solid;
+  padding: .5rem;
+}
+
+.commented {
+  background-color: lemonchiffon;
+}
+
 .deleted {
   background-color: lightcoral;
 }
