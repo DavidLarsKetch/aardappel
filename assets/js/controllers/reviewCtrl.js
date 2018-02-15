@@ -1,6 +1,6 @@
 "use strict";
 
-angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $location, $routeParams, $window, CommentFactory, DocFactory, SegmentFactory, TeamFactory, UserFactory) {
+angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $location, $routeParams, $q, $window, CommentFactory, DocFactory, SegmentFactory, TeamFactory, UserFactory) {
 
   const loggedInUid = firebase.auth().currentUser.uid;
   const thisDocID = $routeParams.doc_id;
@@ -49,7 +49,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
         ));
       }
 
-      return Promise.all(promises);
+      return $q.all(promises);
     });
 
 ////// Creates new edit suggestion, updating old segment with 'deleted', posting
@@ -75,7 +75,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       })
     );
 
-    Promise.all(promises)
+    $q.all(promises)
     .then(() => {
       let promises = [];
     // Updates the original segment with class 'deleted', pushing the
@@ -97,16 +97,11 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
         ));
       }
 
-      return Promise.all(promises);
+      return $q.all(promises);
     })
     // Gets updated data and reprints to the DOM
     .then(() => SegmentFactory.getSegments(thisDocID))
-    .then(segments => {
-      $scope.segments = segments;
-    // Fix for user needing to click twice away from segment to get
-    // update to print to DOM
-      $scope.$apply();
-    })
+    .then(segments => $scope.segments = segments)
     .catch(err => console.log(err));
   };
 
@@ -296,7 +291,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
         ));
       }
 
-      return Promise.all(promises);
+      return $q.all(promises);
     })
     // Reprints segments after getting them
     .then(() => SegmentFactory.getSegments(thisDocID))
