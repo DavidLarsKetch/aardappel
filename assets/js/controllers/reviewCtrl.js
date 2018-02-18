@@ -18,6 +18,11 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
   const checkUidTemp = ({uid_temp}) =>
     checkUndefined(uid_temp) && uid_temp === loggedInUid;
 
+  const reprint = () =>
+    SegmentFactory.getSegments(thisDocID)
+    .then(segments => $scope.segments = segments)
+    .catch(err => console.log(err));
+
 ////// Removes temporary edits from the database; passing in 'true' means to
     // reset segments to their unedited status, passing in 'false' means to
     // remove the temporary status of suggested edits
@@ -110,8 +115,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     optionalID ? document.getElementById(optionalID).innerHTML.trim() : document.getElementById(id).innerHTML.trim();
 
     SegmentFactory.patchSegment(id, {text: updatedText})
-    .then(() => SegmentFactory.getSegments(thisDocID))
-    .then(segments => $scope.segments = segments);
+    .then(() => reprint());
   };
 
   const overwriteEditSuggestion = (id, idx) => {
@@ -119,8 +123,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     overwriteText = document.getElementById(id).innerHTML.trim();
 
     SegmentFactory.patchSegment(suggestionSegment.firebaseID, {text: overwriteText})
-    .then(() => SegmentFactory.getSegments(thisDocID))
-    .then(segments => $scope.segments = segments);
+    .then(() => reprint());
   };
 
 ////// PARTIAL-FACING FUNCTIONS
@@ -402,8 +405,6 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
   .then(userData => {
     $scope.doc.displayName = userData.displayName;
     // Get document segments
-    return SegmentFactory.getSegments(thisDocID);
-  })
-  .then(segments => $scope.segments = segments)
-  .catch(err => console.log(err));
+    return reprint();
+  });
 });
