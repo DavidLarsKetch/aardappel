@@ -1,6 +1,6 @@
 "use strict";
 
-angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $location, $routeParams, $q, $window, CommentFactory, DocFactory, SegmentFactory, TeamFactory, UserFactory) {
+angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $location, $routeParams, $q, $window, BoolServices, CommentFactory, DocFactory, SegmentFactory, TeamFactory, UserFactory) {
 
   const loggedInUid = firebase.auth().currentUser.uid;
   const thisDocID = $routeParams.doc_id;
@@ -9,15 +9,6 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
   let loggedInDisplayName, overwriteText, toCheck, updatedText;
 
 ////// INTERNAL FUNCTIONS
-
-////// Checks whether passed in property is not undefined
-  const checkUndefined = prop => typeof prop !== "undefined";
-
-////// Checks whether segment has uid_temp & whether the temp
-    // edit is the current user's
-  const checkUidTemp = ({uid_temp}) =>
-    checkUndefined(uid_temp) && uid_temp === loggedInUid;
-
   const reprint = () =>
     SegmentFactory.getSegments(thisDocID)
     .then(segments => $scope.segments = segments)
@@ -180,12 +171,12 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       toCheck = $scope.segments[originalSegmentIdx].classes;
     // Passes when user changes text of a green highlighted 'added'
     // segment, updating the suggestion
-      if (checkUndefined(toCheck) && toCheck.includes("added")) {
+      if (BoolServices.hasClass(toCheck, "added")) {
         updateEditSuggestion(id);
 
     // Passes when user changes text of a red highlight 'deleted'
     // segment, overwriting the previous edit suggestion
-      } else if (checkUndefined(toCheck) && toCheck.includes("deleted")) {
+  } else if (BoolServices.hasClass(toCheck, "deleted")) {
         overwriteEditSuggestion(id, originalSegmentIdx);
 
     // Passes when a user changes text of an original, unmodified
@@ -311,7 +302,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
   $scope.activateReviewBox = segment => {
 
     // Passes if clicked on segment is "commented"
-    if (checkUndefined(segment.classes) && segment.classes.includes("commented")) {
+    if (BoolServices.hasClass(segment.classes, "commented")) {
     // Gets the comment from the database
       CommentFactory.getComment(segment.firebaseID)
       .then(comment => {
@@ -333,7 +324,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       )
       .catch(err => console.log(err));
     // Passes if the clicked on segment is "added" or "deleted"
-    } else if (checkUndefined(segment.classes) && !segment.classes.includes("commented")) {
+  } else if (BoolServices.notUndefined(segment.classes) && !BoolServices.hasClass(segment.classes, "commented")) {
       $scope.showWrapper =
         $scope.showWrapper && $scope.reviewItem.text === segment.text ? false : true;
 
@@ -351,7 +342,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     let newReviewText =
       document.getElementById("updatedReviewText").innerHTML;
 
-    if ($scope.reviewItem.text !== newReviewText && classCheck.includes("commented")) {
+    if ($scope.reviewItem.text !== newReviewText && BoolServices.hasClass(classCheck, "commented")) {
       // Patches with new comment text & uid, does not check for uid since
       // that would be extraneous
       CommentFactory.patchComment(
@@ -365,7 +356,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       .then(({displayName}) => $scope.reviewItem.displayName = displayName)
       .catch(err => console.log(err));
 
-    } else if ($scope.reviewItem.text !== newReviewText && classCheck.includes("deleted")) {
+    } else if ($scope.reviewItem.text !== newReviewText && BoolServices.hasClass(classCheck, "deleted")) {
 
       let idx =
         $scope.segments.findIndex(segment => $scope.reviewItem.firebaseID === segment.firebaseID);
@@ -374,7 +365,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
 
       $scope.reviewItem.text = newReviewText;
 
-    } else if ($scope.reviewItem.text !== newReviewText && classCheck.includes("added")) {
+    } else if ($scope.reviewItem.text !== newReviewText && BoolServices.hasClass(classCheck, "added")) {
 
       updateEditSuggestion($scope.reviewItem.firebaseID, "updatedReviewText");
       $scope.reviewItem.text = newReviewText;

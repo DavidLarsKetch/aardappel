@@ -1,0 +1,17 @@
+"use strict";
+
+angular.module("DocApp").service('BoolServices', function() {
+////// Checks whether passed in property is not undefined
+  const notUndefined = property => typeof property !== "undefined";
+
+////// Checks whether array of classes has the class passed in
+  const hasClass = (arrayOfClasses, classToCheck) =>
+    notUndefined(arrayOfClasses) && arrayOfClasses.includes(classToCheck);
+
+////// Checks whether segment has uid_temp & whether the temp
+    // edit is the current user's
+  const isUidTemp = (uid_temp, uid) =>
+    notUndefined(uid_temp) && uid_temp === uid;
+
+  return {hasClass, notUndefined, isUidTemp};
+});
