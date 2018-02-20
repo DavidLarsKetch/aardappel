@@ -1,7 +1,6 @@
 "use strict";
 
-angular.module("DocApp").controller("NewDocCtrl", function($scope, $location, $routeParams, $window, DocFactory, SegmentFactory, TeamFactory) {
-  $scope.test = "Sup, NewDocCtrl";
+angular.module("DocApp").controller("NewDocCtrl", function($scope, $location, $routeParams, $window, $q, DocFactory, SegmentFactory, TeamFactory) {
 
   //Verifies user has access to team, redirecting to team-login view if not
   const loggedInUid = firebase.auth().currentUser.uid;
@@ -29,7 +28,7 @@ angular.module("DocApp").controller("NewDocCtrl", function($scope, $location, $r
     let keys = Object.keys(segments);
     let promises = [];
     keys.forEach(key => promises.push(SegmentFactory.deleteSegment(key)));
-    Promise.all(promises)
+    $q.all(promises)
     .then(() => $location.path(`/docs/${$routeParams.team_id}`))
     .catch(err => console.log(err));
   };
@@ -58,7 +57,7 @@ angular.module("DocApp").controller("NewDocCtrl", function($scope, $location, $r
           segment.doc_order = i;
           promises.push(SegmentFactory.postSegment(segment));
         }
-        return Promise.all(promises);
+        return $q.all(promises);
       })
       .then(() => $location.path(`/docs/${$routeParams.team_id}`))
       .catch(err => console.log(err));
