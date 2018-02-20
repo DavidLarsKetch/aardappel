@@ -1,7 +1,6 @@
 "use strict";
 
 angular.module("DocApp").controller("TeamRegisterCtrl", function($scope, $location, TeamFactory) {
-  $scope.test = "Sup, TeamRegisterCtrl";
   $scope.team = {
     displayName: '',
     password: '',

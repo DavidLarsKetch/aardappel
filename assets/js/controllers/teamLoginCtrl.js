@@ -5,7 +5,6 @@ function($scope, $location, $route, $window, AuthFactory, TeamFactory) {
   const uid = firebase.auth().currentUser.uid;
   $scope.usersTeams = [];
   $scope.newTeams = [];
-  $scope.test = `Sup, TeamLoginCtrl. currentUser: ${firebase.auth().currentUser.uid}`;
 
   const sortUserAccess = firebaseID =>
     TeamFactory.getTeam(firebaseID)

@@ -1,7 +1,6 @@
 "use strict";
 
 angular.module("DocApp").controller("AllDocsCtrl", function($scope, $location, $routeParams, DocFactory, TeamFactory, UserFactory) {
-  $scope.test = "Sup, AllDocsCtrl";
   $scope.usersDocs = [];
   $scope.teamDocs = [];
   const loggedInUid = firebase.auth().currentUser.uid;
