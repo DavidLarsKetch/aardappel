@@ -1,13 +1,18 @@
 "use strict";
 
 angular.module("DocApp").controller("LoginCtrl",
-function($scope, $window, AuthFactory, UserFactory) {
+function(
+  $scope,
+  NavServices,
+  AuthFactory, UserFactory
+) {
+
   $scope.auth = {};
   $scope.user = {};
 
   $scope.login = () =>
     AuthFactory.login($scope.auth)
-    .then(() => $window.location.href = "#!/team-login");
+    .then(() => NavServices.toTeamsLogin());
 
   $scope.logout = () => AuthFactory.logout();
 

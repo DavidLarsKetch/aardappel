@@ -1,11 +1,17 @@
 "use strict";
 
-angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $location, $routeParams, $q, $window, BoolServices, CommentFactory, DocFactory, InterfaceServices, SegmentFactory, TeamFactory, UserFactory) {
+angular.module("DocApp").controller("ReviewCtrl",
+function(
+  $scope, $compile, $q,
+  BoolServices, InterfaceServices, NavServices,
+  CommentFactory, DocFactory, SegmentFactory, TeamFactory, UserFactory
+) {
 
   const loggedInUid = firebase.auth().currentUser.uid;
-  const thisDocID = $routeParams.doc_id;
-  const thisTeamsID = $routeParams.team_id;
+  const thisDocID = NavServices.getDocID();
+  const thisTeamsID = NavServices.getTeamsID();
   $scope.reviewItem = {};
+  let commentInView = false;
 
 ////// INTERNAL FUNCTIONS
 ///// Reprints doc's latest segments in Firebase
@@ -23,19 +29,19 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       .then(segments => {
         let promises = segments
     // Finds segments that were marked for deletion
-        .filter(({classes, uid}) =>
-          BoolServices.isUidTemp(uid, loggedInUid) && BoolServices.hasClass(classes, "deleted")
+        .filter(({classes, temp_uid}) =>
+          BoolServices.isUidTemp(temp_uid, loggedInUid) && BoolServices.hasClass(classes, "deleted")
         )
-    // Removes "classes" & "uid_temp" from that segment
+    // Removes "classes" & "temp_uid" from that segment
         .map(({firebaseID}) =>
           SegmentFactory.patchSegment(
-            firebaseID, {classes: null, uid_temp: null}
+            firebaseID, {classes: null, temp_uid: null}
           )
         );
     // Finds segments that were marked for addition
         promises.concat(segments
-          .filter(({classes, uid}) =>
-            BoolServices.isUidTemp(uid, loggedInUid) && BoolServices.hasClass(classes, "added")
+          .filter(({classes, temp_uid}) =>
+            BoolServices.isUidTemp(temp_uid, loggedInUid) && BoolServices.hasClass(classes, "added")
           )
     // Deletes those segments
           .map(({firebaseID}) =>
@@ -58,16 +64,17 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       });
     },
     // Makes edit suggestions permanent for edits made by the current user
-    keep: segments => {
-      return SegmentFactory.getSegments(thisDocID)
+    keep: segments =>
+      SegmentFactory.getSegments(thisDocID)
       .then(segments => segments
-        .filter(({uid}) => BoolServices.isUidTemp(uid, loggedInUid))
-    // Removes "uid_temp" indicating its permanent suggestion
+        .filter(({temp_uid}) =>
+          BoolServices.isUidTemp(temp_uid, loggedInUid)
+        )
+    // Removes "temp_uid", making it a permanent suggestion
         .map(({firebaseID}) => SegmentFactory.patchSegment(
-          firebaseID, {uid_temp: null}
+          firebaseID, {temp_uid: null}
         ))
-      );
-    }
+      )
   };
 
 ////// Provides functions for updating the doc with suggested additions,
@@ -85,7 +92,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
             doc_id: thisDocID,
             doc_order: $scope.segments[idx].doc_order + index,
             text: segment,
-            uid_temp: loggedInUid
+            temp_uid: loggedInUid
           });
       });
     // If the original segment is not the first segment in the array of
@@ -111,7 +118,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     // Marks text segment for deletion with "deleted" class
     deletes: toDelete =>
       SegmentFactory.patchSegment(
-        toDelete, {classes: ["deleted"], uid_temp: loggedInUid}
+        toDelete, {classes: ["deleted"], temp_uid: loggedInUid}
       ).then(() => reprint()),
 
     edits: (toEdit, idx) => {
@@ -123,7 +130,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
           doc_id: thisDocID,
           doc_order: $scope.segments[idx].doc_order + 1 + index,
           text: segment,
-          uid_temp: loggedInUid
+          temp_uid: loggedInUid
         })
       );
 
@@ -131,7 +138,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     // patch to a Promise.all array
       promises.push(SegmentFactory.patchSegment(
         $scope.segments[idx].firebaseID,
-        {classes: ["deleted"], uid_temp: loggedInUid}
+        {classes: ["deleted"], temp_uid: loggedInUid}
       ));
 
     // Updates the order of each segment in the doc coming after the
@@ -195,14 +202,14 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
 ////// Allows cancelling of changes made
   $scope.cancel = () =>
     $q.all(tempSuggestions.delete())
-    .then(() => $location.path(`/docs/${thisTeamsID}`))
+    .then(() => NavServices.toAllDocs(thisTeamsID))
     .catch(err => console.log(err));
 
 ////// Allows user to keep doc in 'pending' without 'cancelling' or
     // 'completing' the editing
   $scope.save = () =>
     $q.all(tempSuggestions.keep())
-    .then(() => $window.location.href = `#!/docs/${thisTeamsID}`)
+    .then(() => NavServices.toAllDocs(thisTeamsID))
     .catch(err => console.log(err));
 
   // Moves document from 'pending' to 'completed'
@@ -212,7 +219,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
 
     DocFactory.putDoc($scope.doc)
     .then(() => $q.all(tempSuggestions.keep()))
-    .then(() => $location.path(`docs/${thisTeamsID}`))
+    .then(() => NavServices.toAllDocs(thisTeamsID))
     .catch(err => console.log(err));
   };
 
@@ -223,7 +230,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     $scope.doc.reviewer = null;
 
     DocFactory.putDoc($scope.doc)
-    .then(() => $location.path(`docs/${thisTeamsID}/pending/${thisDocID}`))
+    .then(() => NavServices.toDocPending(thisTeamsID, thisDocID))
     .catch(err => console.log(err));
   };
 
@@ -365,43 +372,38 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     .catch(err => console.log(err));
   };
 
-////// Toggles showing the reviewBox with the review item & its classes
-  $scope.activateReviewBox = segment => {
-
-    // Passes if clicked on segment is "commented"
+  $scope.toggleReviewBox = segment => {
     if (BoolServices.hasClass(segment.classes, "commented")) {
-    // Gets the comment from the database
+      angular.element(document.getElementById("reviewBox")).remove();
+
       CommentFactory.getComment(segment.firebaseID)
       .then(comment => {
-    // Toggles showing the reviewBox wrapper
-        $scope.showWrapper =
-          $scope.showWrapper && $scope.reviewItem.text === comment.text ? false : true;
+        commentInView =
+        commentInView && $scope.reviewItem.text === comment.text ? false : true;
 
-    // Gives reviewBox comment's classes
-        document.getElementById("reviewBox").classList = `${segment.classes} inline-comment-box`;
-
-    // Assigns comment to reviewItem for printing & manipulating
+      // Assigns comment to reviewItem for printing & manipulating
         $scope.reviewItem = comment;
-
-    // For 'next comment' & 'prev comment' buttons, sets starting point
-    // index
-      InterfaceServices.setIndex(segment.firebaseID);
-
-    // Gets displayName from commenter's uid
+      // Gets displayName from commenter's uid
         return UserFactory.getUser(comment.uid);
       })
-      .then(({displayName}) =>
-        $scope.reviewItem.displayName = `- ${displayName}`
-      )
+      .then(({displayName}) => {
+        $scope.reviewItem.displayName = `- ${displayName}`;
+
+        if (commentInView) {
+        // Wraps targeted 'commented' segment for jqLite functionality.
+          let targetCommentElm = angular.element(document.getElementById(segment.firebaseID));
+
+        // Grabs, compiles, & inserts review box div living
+        // in InterfaceServices after commented segment
+          let commentDiv = InterfaceServices.constructReviewBox();
+          targetCommentElm.after($compile(commentDiv)($scope));
+
+        // Sets current index for comment navigate buttons
+          InterfaceServices.setIndex(segment.firebaseID);
+
+        }
+      })
       .catch(err => console.log(err));
-    // Passes if the clicked on segment is "added" or "deleted"
-  } else if (BoolServices.notUndefined(segment.classes) && !BoolServices.hasClass(segment.classes, "commented")) {
-      $scope.showWrapper =
-        $scope.showWrapper && $scope.reviewItem.text === segment.text ? false : true;
-
-      document.getElementById("reviewBox").classList = `${segment.classes} inline-comment-box`;
-
-      $scope.reviewItem = segment;
     }
   };
 
@@ -446,14 +448,16 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
   $scope.nextComment = () => {
     InterfaceServices.next();
     let segment = InterfaceServices.findSegment($scope.segments);
-    $scope.activateReviewBox(segment);
+    $scope.toggleReviewBox(segment);
   };
 
   $scope.prevComment = () => {
     InterfaceServices.prev();
     let segment = InterfaceServices.findSegment($scope.segments);
-    $scope.activateReviewBox(segment);
+    $scope.toggleReviewBox(segment);
   };
+
+  $scope.toAllDocs = () => NavServices.toAllDocs(thisTeamsID);
 
 ////// ON-PAGE LOAD FUNCTIONS
 
@@ -461,7 +465,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
   TeamFactory.verifyUserAccess(thisTeamsID, loggedInUid)
     // Gets the team's display name
   .then(({displayName}) => $scope.teamName = displayName)
-  .catch(() => $location.path('/team-login'));
+  .catch(() => NavServices.toTeamsLogin());
 
 ////// Gets the doc, doc owner's displayName, & doc's segments
   DocFactory.getDoc(thisDocID)
