@@ -23,19 +23,19 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       .then(segments => {
         let promises = segments
     // Finds segments that were marked for deletion
-        .filter(({classes, uid}) =>
-          BoolServices.isUidTemp(uid, loggedInUid) && BoolServices.hasClass(classes, "deleted")
+        .filter(({classes, temp_uid}) =>
+          BoolServices.isUidTemp(temp_uid, loggedInUid) && BoolServices.hasClass(classes, "deleted")
         )
-    // Removes "classes" & "uid_temp" from that segment
+    // Removes "classes" & "temp_uid" from that segment
         .map(({firebaseID}) =>
           SegmentFactory.patchSegment(
-            firebaseID, {classes: null, uid_temp: null}
+            firebaseID, {classes: null, temp_uid: null}
           )
         );
     // Finds segments that were marked for addition
         promises.concat(segments
-          .filter(({classes, uid}) =>
-            BoolServices.isUidTemp(uid, loggedInUid) && BoolServices.hasClass(classes, "added")
+          .filter(({classes, temp_uid}) =>
+            BoolServices.isUidTemp(temp_uid, loggedInUid) && BoolServices.hasClass(classes, "added")
           )
     // Deletes those segments
           .map(({firebaseID}) =>
@@ -61,10 +61,12 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     keep: segments => {
       return SegmentFactory.getSegments(thisDocID)
       .then(segments => segments
-        .filter(({uid}) => BoolServices.isUidTemp(uid, loggedInUid))
-    // Removes "uid_temp" indicating its permanent suggestion
+        .filter(({temp_uid}) =>
+          BoolServices.isUidTemp(temp_uid, loggedInUid)
+        )
+    // Removes "temp_uid", making it a permanent suggestion
         .map(({firebaseID}) => SegmentFactory.patchSegment(
-          firebaseID, {uid_temp: null}
+          firebaseID, {temp_uid: null}
         ))
       );
     }
@@ -85,7 +87,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
             doc_id: thisDocID,
             doc_order: $scope.segments[idx].doc_order + index,
             text: segment,
-            uid_temp: loggedInUid
+            temp_uid: loggedInUid
           });
       });
     // If the original segment is not the first segment in the array of
@@ -111,7 +113,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     // Marks text segment for deletion with "deleted" class
     deletes: toDelete =>
       SegmentFactory.patchSegment(
-        toDelete, {classes: ["deleted"], uid_temp: loggedInUid}
+        toDelete, {classes: ["deleted"], temp_uid: loggedInUid}
       ).then(() => reprint()),
 
     edits: (toEdit, idx) => {
@@ -123,7 +125,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
           doc_id: thisDocID,
           doc_order: $scope.segments[idx].doc_order + 1 + index,
           text: segment,
-          uid_temp: loggedInUid
+          temp_uid: loggedInUid
         })
       );
 
@@ -131,7 +133,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     // patch to a Promise.all array
       promises.push(SegmentFactory.patchSegment(
         $scope.segments[idx].firebaseID,
-        {classes: ["deleted"], uid_temp: loggedInUid}
+        {classes: ["deleted"], temp_uid: loggedInUid}
       ));
 
     // Updates the order of each segment in the doc coming after the
@@ -383,9 +385,8 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     // Assigns comment to reviewItem for printing & manipulating
         $scope.reviewItem = comment;
 
-    // For 'next comment' & 'prev comment' buttons, sets starting point
-    // index
-      InterfaceServices.setIndex(segment.firebaseID);
+    // Sets current index for comment navigate buttons
+        InterfaceServices.setIndex(segment.firebaseID);
 
     // Gets displayName from commenter's uid
         return UserFactory.getUser(comment.uid);
@@ -395,6 +396,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       )
       .catch(err => console.log(err));
     // Passes if the clicked on segment is "added" or "deleted"
+    // TODO: With new UI, decide whether this functionality is desirable
   } else if (BoolServices.notUndefined(segment.classes) && !BoolServices.hasClass(segment.classes, "commented")) {
       $scope.showWrapper =
         $scope.showWrapper && $scope.reviewItem.text === segment.text ? false : true;

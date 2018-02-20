@@ -8,10 +8,10 @@ angular.module("DocApp").service('BoolServices', function() {
   const hasClass = (arrayOfClasses, classToCheck) =>
     notUndefined(arrayOfClasses) && arrayOfClasses.includes(classToCheck);
 
-////// Checks whether segment has uid_temp & whether the temp
+////// Checks whether segment has temp_uid & whether the temp
     // edit is the current user's
-  const isUidTemp = (uid_temp, uid) =>
-    notUndefined(uid_temp) && uid_temp === uid;
+  const isUidTemp = (temp_uid, uid) =>
+    notUndefined(temp_uid) && temp_uid === uid;
 
   return {hasClass, notUndefined, isUidTemp};
 });
