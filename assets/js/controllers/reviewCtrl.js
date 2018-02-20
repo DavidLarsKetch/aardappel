@@ -217,66 +217,61 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     // (2) deletes old segment from DB
     SegmentFactory.deleteSegment(selParentID)
     .then(() => {
+      let toCheck = $scope.segments[originalSegmentIdx];
     // (3) Breaks apart segments based upon the selected div
       let newSegments = SegmentFactory.breakOutSegment(
         selParentID, sel.baseOffset, sel.focusOffset
       );
+      newSegments = newSegments.map((segment, index) => {return {
+        doc_id: thisDocID,
+        doc_order: originalSegmentIdx + index,
+        text: segment
+      };});
 
-      let j = originalSegmentIdx;
+    // A = original segment has classes
+    // B = string is the one being commented upon
+    promises = newSegments     // !A && !B
+      .filter(({text}) =>
+        text !== sel.toString() && !toCheck.hasOwnProperty("classes")
+      )
+      .map(segment => SegmentFactory.postSegment(segment));
 
-      for (let i = 0; i < newSegments.length; i++) {
-    // (4) Converts each newSegment element into an object
-        newSegments[i] = {
-          doc_id: thisDocID,
-          doc_order: j,
-          uid: $scope.doc.uid,
-          text: newSegments[i]
-        };
+    promises = newSegments      // A && B
+      .filter(({text}) =>
+        toCheck.hasOwnProperty("classes") && text === sel.toString()
+      )
+      .map(segment => {
+        segment.classes = toCheck.classes.split(' ');
+        segment.classes.push("commented");
+        return SegmentFactory.postSegment(segment)
+        .then(({name}) => {
+          comment.segment_id = name;
+          return CommentFactory.postComment(comment);
+        });
+      });
 
-    // If the original segment has a 'classes' property AND is the string
-    // being commented upon
-        if ($scope.segments[originalSegmentIdx].hasOwnProperty("classes") && newSegments[i].text === sel.toString()) {
-    // Split the original segments 'classes' string into an array
-          newSegments[i].classes = $scope.segments[originalSegmentIdx].classes.split(' ');
-    // Adds the "commented" class to that 'classes' array
-          newSegments[i].classes.push("commented");
-    // Pushes that new segment to Promise.all(promises)
-          promises.push(
-            SegmentFactory.postSegment(newSegments[i])
-    // (5) Then posts the comment related to that commented upon segment to
-    // the DB, using the firebaseID returned by posting that segment
-            .then(({name}) => {
-              comment.segment_id = name;
-              return CommentFactory.postComment(comment);
-            })
-          );
-    // If the original segment has a 'classes' property
-        } else if ($scope.segments[originalSegmentIdx].hasOwnProperty("classes")) {
-    // Adds 'classes' property from the original segment
-            newSegments[i].classes = $scope.segments[originalSegmentIdx].classes.split(' ');
-    // (5) Pushes that new segment to Promise.all(promises)
-            promises.push(SegmentFactory.postSegment(newSegments[i]));
+    promises = newSegments      // A && !B
+      .filter(({text}) =>
+        toCheck.hasOwnProperty("classes") && text !== sel.toString()
+      )
+      .map(segment => {
+        segment.classes = toCheck.classes.split(' ');
+        return SegmentFactory.postSegment(segment);
+      });
 
-    // If the segment is the commented upon segment AND does not have
-    // any suggested edits already
-          } else if (newSegments[i].text === sel.toString()) {
-            newSegments[i].classes = ["commented"];
-    // (5) Then posts the comment related to that commented upon segment to
-    // the DB, using the firebaseID returned by posting that segment
-            promises.push(
-              SegmentFactory.postSegment(newSegments[i])
-              .then(({name}) => {
-                comment.segment_id = name;
-                return CommentFactory.postComment(comment);
-              })
-            );
+    promises = newSegments     // !A && B
+      .filter(({text}) =>
+        !toCheck.hasOwnProperty("classes") && text === sel.toString()
+      )
+      .map(segment => {
+        segment.classes = ["commented"];
+        return SegmentFactory.postSegment(segment)
+        .then(({name}) => {
+          comment.segment_id = name;
+          return CommentFactory.postComment(comment);
+        });
+      });
 
-          } else {
-            promises.push(SegmentFactory.postSegment(newSegments[i]));
-          }
-          j++;
-        }
-    // (6) updates segments coming after new segments with new doc_order
       for (let i = originalSegmentIdx + 1; i < $scope.segments.length; i++) {
         promises.push(SegmentFactory.patchSegment(
           $scope.segments[i].firebaseID,
