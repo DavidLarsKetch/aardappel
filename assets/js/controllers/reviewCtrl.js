@@ -69,53 +69,68 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     }
   };
 
+////// Provides functions for updating the doc with suggested additions,
+    // deletions and edits
+  const updater = {
+    adds: (toAdd, originalText, idx) => {
+      let arrayIdx = toAdd.indexOf(originalText);
+    // Posts new text segment(s) added, calculating their doc_order based
+    // on the original segment's doc_order + that segment's index in the
+    // array of segments
+      let promises = toAdd.map((segment, index) => {
+        if (arrayIdx !== index)
+          SegmentFactory.postSegment({
+            classes: ["added"],
+            doc_id: thisDocID,
+            doc_order: $scope.segments[idx].doc_order + index,
+            text: segment,
+            uid_temp: loggedInUid
+          });
+      });
+    // If the original segment is not the first segment in the array of
+    // segments, then adds to that segment's doc_order its place in the
+    // array of segments
+      if (arrayIdx !== 0)
+        promises.push(SegmentFactory.patchSegment(
+          $scope.segments[idx].firebaseID,
+          {doc_order: $scope.segments[idx].doc_order + arrayIdx}
         ));
 
-      } else if (!bool) {
-        promises.concat(segments.filter(segment =>
-          checkUidTemp(segment)
-        ).map(segment =>
-          SegmentFactory.patchSegment(segment.firebaseID, {uid_temp: null})
+    // Updates each succeeding segment in the doc with its new doc_order
+      for (let i = idx + 1; i < $scope.segments.length; i++) {
+        promises.push(SegmentFactory.patchSegment(
+          $scope.segments[i].firebaseID,
+          {doc_order: $scope.segments[i].doc_order + toAdd.length - 1}
         ));
       }
 
-      return $q.all(promises);
-    });
+      $q.all(promises)
+      .then(() => reprint());
+    },
+    // Marks text segment for deletion with "deleted" class
+    deletes: toDelete =>
+      SegmentFactory.patchSegment(
+        toDelete, {classes: ["deleted"], uid_temp: loggedInUid}
+      ).then(() => reprint()),
 
-////// Creates new edit suggestion, updating old segment with 'deleted', posting
-    // posting new segment, & updating doc_order of succeeding segments
-  const createNewEditSuggestion = idx => {
-    // Gets text of the suggested edit
-    let text =
-      document.getElementById($scope.segments[idx].firebaseID)
-      .innerHTML.trim();
-    // Segments text in order to break apart sentences in the suggested
-    // edit
-    let segments = SegmentFactory.segmentText(text);
-
+    edits: (toEdit, idx) => {
     // Builds object for new text segment to be posted to database while
     // posting it to database
-    let promises = segments.map((segment, index) =>
-      SegmentFactory.postSegment({
-        classes: ["added"],
-        doc_id: thisDocID,
-        doc_order: $scope.segments[idx].doc_order + 1 + index,
-        text: segment,
-        uid_temp: loggedInUid
-      })
-    );
+      let promises = toEdit.map((segment, index) =>
+        SegmentFactory.postSegment({
+          classes: ["added"],
+          doc_id: thisDocID,
+          doc_order: $scope.segments[idx].doc_order + 1 + index,
+          text: segment,
+          uid_temp: loggedInUid
+        })
+      );
 
-    $q.all(promises)
-    .then(() => {
-      let promises = [];
     // Updates the original segment with class 'deleted', pushing the
     // patch to a Promise.all array
       promises.push(SegmentFactory.patchSegment(
         $scope.segments[idx].firebaseID,
-        {
-          classes: ["deleted"],
-          uid_temp: loggedInUid
-        }
+        {classes: ["deleted"], uid_temp: loggedInUid}
       ));
 
     // Updates the order of each segment in the doc coming after the
@@ -123,16 +138,16 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       for (let i = idx + 1; i < $scope.segments.length; i++) {
         promises.push(SegmentFactory.patchSegment(
           $scope.segments[i].firebaseID,
-          {doc_order: $scope.segments[i].doc_order + segments.length}
+          {doc_order: $scope.segments[i].doc_order + toEdit.length}
         ));
       }
 
-      return $q.all(promises);
-    })
+      $q.all(promises)
     // Gets updated data and reprints to the DOM
-    .then(() => SegmentFactory.getSegments(thisDocID))
-    .then(segments => $scope.segments = segments)
-    .catch(err => console.log(err));
+      .then(() => reprint());
+    }
+  };
+
 ////// Creates new edit suggestion, updating old segment with 'deleted', posting
     // posting new segment, & updating doc_order of succeeding segments
   const createNewEditSuggestion = idx => {
