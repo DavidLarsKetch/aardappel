@@ -18,8 +18,8 @@
     <button type="button" name="comment" ng-click="toggleCommentBox()">Comment</button>
   </div>
   <div ng-show="doc.completed">
-    <button type="button" name="next" ng-click="goToComment.next()">Next Comment</button>
-    <button type="button" name="previous" ng-click="goToComment.prev()">Prev. Comment</button>
+    <button type="button" name="next" ng-click="nextComment()">Next Comment</button>
+    <button type="button" name="previous" ng-click="prevComment()">Prev. Comment</button>
     <button type="button" name="rereview" ng-click="rereview()">Send Back to Review</button>
   </div>
 </div>
