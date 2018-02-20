@@ -1,6 +1,6 @@
 "use strict";
 
-angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $location, $routeParams, $window, CommentFactory, DocFactory, SegmentFactory, TeamFactory, UserFactory) {
+angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $location, $routeParams, $q, $window, BoolServices, CommentFactory, DocFactory, SegmentFactory, TeamFactory, UserFactory) {
 
   const loggedInUid = firebase.auth().currentUser.uid;
   const thisDocID = $routeParams.doc_id;
@@ -9,14 +9,10 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
   let loggedInDisplayName, overwriteText, toCheck, updatedText;
 
 ////// INTERNAL FUNCTIONS
-
-////// Checks whether passed in property is not undefined
-  const checkUndefined = prop => typeof prop !== "undefined";
-
-////// Checks whether segment has uid_temp & whether the temp
-    // edit is the current user's
-  const checkUidTemp = ({uid_temp}) =>
-    checkUndefined(uid_temp) && uid_temp === loggedInUid;
+  const reprint = () =>
+    SegmentFactory.getSegments(thisDocID)
+    .then(segments => $scope.segments = segments)
+    .catch(err => console.log(err));
 
 ////// Removes temporary edits from the database; passing in 'true' means to
     // reset segments to their unedited status, passing in 'false' means to
@@ -49,7 +45,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
         ));
       }
 
-      return Promise.all(promises);
+      return $q.all(promises);
     });
 
 ////// Creates new edit suggestion, updating old segment with 'deleted', posting
@@ -75,7 +71,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       })
     );
 
-    Promise.all(promises)
+    $q.all(promises)
     .then(() => {
       let promises = [];
     // Updates the original segment with class 'deleted', pushing the
@@ -97,7 +93,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
         ));
       }
 
-      return Promise.all(promises);
+      return $q.all(promises);
     })
     // Gets updated data and reprints to the DOM
     .then(() => SegmentFactory.getSegments(thisDocID))
@@ -110,8 +106,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     optionalID ? document.getElementById(optionalID).innerHTML.trim() : document.getElementById(id).innerHTML.trim();
 
     SegmentFactory.patchSegment(id, {text: updatedText})
-    .then(() => SegmentFactory.getSegments(thisDocID))
-    .then(segments => $scope.segments = segments);
+    .then(() => reprint());
   };
 
   const overwriteEditSuggestion = (id, idx) => {
@@ -119,8 +114,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     overwriteText = document.getElementById(id).innerHTML.trim();
 
     SegmentFactory.patchSegment(suggestionSegment.firebaseID, {text: overwriteText})
-    .then(() => SegmentFactory.getSegments(thisDocID))
-    .then(segments => $scope.segments = segments);
+    .then(() => reprint());
   };
 
 ////// PARTIAL-FACING FUNCTIONS
@@ -177,12 +171,12 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       toCheck = $scope.segments[originalSegmentIdx].classes;
     // Passes when user changes text of a green highlighted 'added'
     // segment, updating the suggestion
-      if (checkUndefined(toCheck) && toCheck.includes("added")) {
+      if (BoolServices.hasClass(toCheck, "added")) {
         updateEditSuggestion(id);
 
     // Passes when user changes text of a red highlight 'deleted'
     // segment, overwriting the previous edit suggestion
-      } else if (checkUndefined(toCheck) && toCheck.includes("deleted")) {
+  } else if (BoolServices.hasClass(toCheck, "deleted")) {
         overwriteEditSuggestion(id, originalSegmentIdx);
 
     // Passes when a user changes text of an original, unmodified
@@ -243,7 +237,6 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     // If the original segment has a 'classes' property AND is the string
     // being commented upon
         if ($scope.segments[originalSegmentIdx].hasOwnProperty("classes") && newSegments[i].text === sel.toString()) {
-          console.log("condition 1 passed");
     // Split the original segments 'classes' string into an array
           newSegments[i].classes = $scope.segments[originalSegmentIdx].classes.split(' ');
     // Adds the "commented" class to that 'classes' array
@@ -260,7 +253,6 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
           );
     // If the original segment has a 'classes' property
         } else if ($scope.segments[originalSegmentIdx].hasOwnProperty("classes")) {
-            console.log("condition 2 passed");
     // Adds 'classes' property from the original segment
             newSegments[i].classes = $scope.segments[originalSegmentIdx].classes.split(' ');
     // (5) Pushes that new segment to Promise.all(promises)
@@ -293,7 +285,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
         ));
       }
 
-      return Promise.all(promises);
+      return $q.all(promises);
     })
     // Reprints segments after getting them
     .then(() => SegmentFactory.getSegments(thisDocID))
@@ -310,7 +302,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
   $scope.activateReviewBox = segment => {
 
     // Passes if clicked on segment is "commented"
-    if (checkUndefined(segment.classes) && segment.classes.includes("commented")) {
+    if (BoolServices.hasClass(segment.classes, "commented")) {
     // Gets the comment from the database
       CommentFactory.getComment(segment.firebaseID)
       .then(comment => {
@@ -332,7 +324,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       )
       .catch(err => console.log(err));
     // Passes if the clicked on segment is "added" or "deleted"
-    } else if (checkUndefined(segment.classes) && !segment.classes.includes("commented")) {
+  } else if (BoolServices.notUndefined(segment.classes) && !BoolServices.hasClass(segment.classes, "commented")) {
       $scope.showWrapper =
         $scope.showWrapper && $scope.reviewItem.text === segment.text ? false : true;
 
@@ -350,7 +342,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     let newReviewText =
       document.getElementById("updatedReviewText").innerHTML;
 
-    if ($scope.reviewItem.text !== newReviewText && classCheck.includes("commented")) {
+    if ($scope.reviewItem.text !== newReviewText && BoolServices.hasClass(classCheck, "commented")) {
       // Patches with new comment text & uid, does not check for uid since
       // that would be extraneous
       CommentFactory.patchComment(
@@ -364,7 +356,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       .then(({displayName}) => $scope.reviewItem.displayName = displayName)
       .catch(err => console.log(err));
 
-    } else if ($scope.reviewItem.text !== newReviewText && classCheck.includes("deleted")) {
+    } else if ($scope.reviewItem.text !== newReviewText && BoolServices.hasClass(classCheck, "deleted")) {
 
       let idx =
         $scope.segments.findIndex(segment => $scope.reviewItem.firebaseID === segment.firebaseID);
@@ -373,7 +365,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
 
       $scope.reviewItem.text = newReviewText;
 
-    } else if ($scope.reviewItem.text !== newReviewText && classCheck.includes("added")) {
+    } else if ($scope.reviewItem.text !== newReviewText && BoolServices.hasClass(classCheck, "added")) {
 
       updateEditSuggestion($scope.reviewItem.firebaseID, "updatedReviewText");
       $scope.reviewItem.text = newReviewText;
@@ -404,8 +396,6 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
   .then(userData => {
     $scope.doc.displayName = userData.displayName;
     // Get document segments
-    return SegmentFactory.getSegments(thisDocID);
-  })
-  .then(segments => $scope.segments = segments)
-  .catch(err => console.log(err));
+    return reprint();
+  });
 });
