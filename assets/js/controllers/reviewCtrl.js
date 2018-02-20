@@ -6,7 +6,6 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
   const thisDocID = $routeParams.doc_id;
   const thisTeamsID = $routeParams.team_id;
   $scope.reviewItem = {};
-  let loggedInDisplayName, overwriteText, toCheck, updatedText;
 
 ////// INTERNAL FUNCTIONS
   const reprint = () =>
@@ -102,7 +101,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
   };
 
   const updateEditSuggestion = (id, optionalID) => {
-    updatedText =
+    let updatedText =
     optionalID ? document.getElementById(optionalID).innerHTML.trim() : document.getElementById(id).innerHTML.trim();
 
     SegmentFactory.patchSegment(id, {text: updatedText})
@@ -110,7 +109,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
   };
 
   const overwriteEditSuggestion = (id, idx) => {
-    let suggestionSegment = $scope.segments[idx + 1];
+    let suggestionSegment = $scope.segments[idx + 1],
     overwriteText = document.getElementById(id).innerHTML.trim();
 
     SegmentFactory.patchSegment(suggestionSegment.firebaseID, {text: overwriteText})
@@ -168,7 +167,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       let originalSegmentIdx = $scope.segments.findIndex(
         segment => segment.firebaseID === id
       );
-      toCheck = $scope.segments[originalSegmentIdx].classes;
+      let toCheck = $scope.segments[originalSegmentIdx].classes;
     // Passes when user changes text of a green highlighted 'added'
     // segment, updating the suggestion
       if (BoolServices.hasClass(toCheck, "added")) {
@@ -377,13 +376,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
 ////// Verifies user has access to team, redirects to team-login if not
   TeamFactory.verifyUserAccess(thisTeamsID, loggedInUid)
     // Gets the team's display name
-  .then(({displayName}) => {
-    $scope.teamName = displayName;
-    // Get logged in user's data in order to have displayName on hand for
-    // making edits.
-    return UserFactory.getUser(loggedInUid);
-  })
-  .then(({displayName}) => loggedInDisplayName = displayName)
+  .then(({displayName}) => $scope.teamName = displayName)
   .catch(() => $location.path('/team-login'));
 
 ////// Gets the doc, doc owner's displayName, & doc's segments
