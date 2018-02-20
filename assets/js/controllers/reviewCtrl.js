@@ -1,6 +1,6 @@
 "use strict";
 
-angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $location, $routeParams, $q, $window, BoolServices, CommentFactory, DocFactory, SegmentFactory, TeamFactory, UserFactory) {
+angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $location, $routeParams, $q, $window, BoolServices, CommentFactory, DocFactory, InterfaceServices, SegmentFactory, TeamFactory, UserFactory) {
 
   const loggedInUid = firebase.auth().currentUser.uid;
   const thisDocID = $routeParams.doc_id;
@@ -315,6 +315,10 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     // Assigns comment to reviewItem for printing & manipulating
         $scope.reviewItem = comment;
 
+    // For 'next comment' & 'prev comment' buttons, sets starting point
+    // index
+      InterfaceServices.setIndex(segment.firebaseID);
+
     // Gets displayName from commenter's uid
         return UserFactory.getUser(comment.uid);
       })
@@ -369,6 +373,18 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       updateEditSuggestion($scope.reviewItem.firebaseID, "updatedReviewText");
       $scope.reviewItem.text = newReviewText;
     }
+  };
+
+  $scope.nextComment = () => {
+    InterfaceServices.next();
+    let segment = InterfaceServices.findSegment($scope.segments);
+    $scope.activateReviewBox(segment);
+  };
+
+  $scope.prevComment = () => {
+    InterfaceServices.prev();
+    let segment = InterfaceServices.findSegment($scope.segments);
+    $scope.activateReviewBox(segment);
   };
 
 ////// ON-PAGE LOAD FUNCTIONS
