@@ -98,6 +98,25 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     .then(() => SegmentFactory.getSegments(thisDocID))
     .then(segments => $scope.segments = segments)
     .catch(err => console.log(err));
+////// Creates new edit suggestion, updating old segment with 'deleted', posting
+    // posting new segment, & updating doc_order of succeeding segments
+  const createNewEditSuggestion = idx => {
+    let IDofOriginal = $scope.segments[idx].firebaseID;
+    let textOfOriginal = $scope.segments[idx].text;
+    // Gets text of the suggested edit
+    let text =
+      document.getElementById(IDofOriginal)
+      .innerHTML.trim();
+    // Segments text in order to break apart sentences in the suggested
+    // edit
+    let segments = SegmentFactory.segmentText(text);
+    if (!segments) {
+      updater.deletes(IDofOriginal);
+    } else if (segments.includes(textOfOriginal)) {
+      updater.adds(segments, textOfOriginal, idx);
+    } else {
+      updater.edits(segments, idx);
+    }
   };
 
   const updateEditSuggestion = (id, optionalID) => {
