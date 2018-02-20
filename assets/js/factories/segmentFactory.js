@@ -1,10 +1,12 @@
 "use strict";
 
 angular.module("DocApp").factory("SegmentFactory", function($q, $http, FirebaseCredentials) {
-  const segmentRegEx = new RegExp(/(\S.*?[a-z]+[.?!])(?=\s+|$)/gm);
-  // TODO: rename to segmentTextBySentence since other segmentations might be
-  // needed later
-  const segmentText = text => text.match(segmentRegEx);
+  const segmentRegEx = new RegExp(/(\S.*?\w+[.?!]+)(?=\s+|$)/gm);
+
+  const segmentText = text =>
+    text
+    .replace(/&nbsp;/, ' ') // Replaces &nbsp; HTML entity with space
+    .match(segmentRegEx);
 
   const breakOutSegment = (segmentID, idx, range) => {
     let whole = document.getElementById(segmentID).innerHTML.trim();
