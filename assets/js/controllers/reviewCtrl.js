@@ -1,10 +1,15 @@
 "use strict";
 
-angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $location, $routeParams, $q, $window, BoolServices, CommentFactory, DocFactory, InterfaceServices, SegmentFactory, TeamFactory, UserFactory) {
+angular.module("DocApp").controller("ReviewCtrl",
+function(
+  $scope, $compile, $q,
+  BoolServices, InterfaceServices, NavServices,
+  CommentFactory, DocFactory, SegmentFactory, TeamFactory, UserFactory
+) {
 
   const loggedInUid = firebase.auth().currentUser.uid;
-  const thisDocID = $routeParams.doc_id;
-  const thisTeamsID = $routeParams.team_id;
+  const thisDocID = NavServices.getDocID();
+  const thisTeamsID = NavServices.getTeamsID();
   $scope.reviewItem = {};
 
 ////// INTERNAL FUNCTIONS
@@ -58,8 +63,8 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       });
     },
     // Makes edit suggestions permanent for edits made by the current user
-    keep: segments => {
-      return SegmentFactory.getSegments(thisDocID)
+    keep: segments =>
+      SegmentFactory.getSegments(thisDocID)
       .then(segments => segments
         .filter(({temp_uid}) =>
           BoolServices.isUidTemp(temp_uid, loggedInUid)
@@ -68,8 +73,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
         .map(({firebaseID}) => SegmentFactory.patchSegment(
           firebaseID, {temp_uid: null}
         ))
-      );
-    }
+      )
   };
 
 ////// Provides functions for updating the doc with suggested additions,
@@ -197,14 +201,14 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
 ////// Allows cancelling of changes made
   $scope.cancel = () =>
     $q.all(tempSuggestions.delete())
-    .then(() => $location.path(`/docs/${thisTeamsID}`))
+    .then(() => NavServices.toAllDocs(thisTeamsID))
     .catch(err => console.log(err));
 
 ////// Allows user to keep doc in 'pending' without 'cancelling' or
     // 'completing' the editing
   $scope.save = () =>
     $q.all(tempSuggestions.keep())
-    .then(() => $window.location.href = `#!/docs/${thisTeamsID}`)
+    .then(() => NavServices.toAllDocs(thisTeamsID))
     .catch(err => console.log(err));
 
   // Moves document from 'pending' to 'completed'
@@ -214,7 +218,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
 
     DocFactory.putDoc($scope.doc)
     .then(() => $q.all(tempSuggestions.keep()))
-    .then(() => $location.path(`docs/${thisTeamsID}`))
+    .then(() => NavServices.toAllDocs(thisTeamsID))
     .catch(err => console.log(err));
   };
 
@@ -225,7 +229,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     $scope.doc.reviewer = null;
 
     DocFactory.putDoc($scope.doc)
-    .then(() => $location.path(`docs/${thisTeamsID}/pending/${thisDocID}`))
+    .then(() => NavServices.toDocPending(thisTeamsID, thisDocID))
     .catch(err => console.log(err));
   };
 
@@ -457,13 +461,15 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     $scope.activateReviewBox(segment);
   };
 
+  $scope.toAllDocs = () => NavServices.toAllDocs(thisTeamsID);
+
 ////// ON-PAGE LOAD FUNCTIONS
 
 ////// Verifies user has access to team, redirects to team-login if not
   TeamFactory.verifyUserAccess(thisTeamsID, loggedInUid)
     // Gets the team's display name
   .then(({displayName}) => $scope.teamName = displayName)
-  .catch(() => $location.path('/team-login'));
+  .catch(() => NavServices.toTeamsLogin());
 
 ////// Gets the doc, doc owner's displayName, & doc's segments
   DocFactory.getDoc(thisDocID)

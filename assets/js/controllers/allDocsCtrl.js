@@ -1,9 +1,16 @@
 "use strict";
 
-angular.module("DocApp").controller("AllDocsCtrl", function($scope, $location, $routeParams, DocFactory, TeamFactory, UserFactory) {
+angular.module("DocApp").controller("AllDocsCtrl",
+function(
+  $scope,
+  NavServices,
+  DocFactory, TeamFactory, UserFactory
+) {
+  
   $scope.usersDocs = [];
   $scope.teamDocs = [];
   const loggedInUid = firebase.auth().currentUser.uid;
+  const thisTeamsID = NavServices.getTeamsID();
   let docs;
 
   // Attaches display name for the doc owner. all-docs.html prints display
@@ -69,8 +76,15 @@ angular.module("DocApp").controller("AllDocsCtrl", function($scope, $location, $
     .catch(err => console.log(err));
   };
 
+  $scope.toNewDoc = () => NavServices.toNewDoc($scope.team.firebaseID);
+  $scope.toTeamsLogin = () => NavServices.toTeamsLogin();
+  $scope.toDocCompleted =
+    doc_id => NavServices.toDocCompleted(thisTeamsID, doc_id);
+  $scope.toDocPending =
+    doc_id => NavServices.toDocPending(thisTeamsID, doc_id);
+
   //Verifies user has access to team, redirects to team-login otherwise
-  TeamFactory.verifyUserAccess($routeParams.team_id, loggedInUid)
+  TeamFactory.verifyUserAccess(thisTeamsID, loggedInUid)
   .then(team => getDataForPage(team)) // Kicks off getting data for page
-  .catch(() => $location.path('/team-login'));
+  .catch(() => NavServices.toTeamsLogin());
 });

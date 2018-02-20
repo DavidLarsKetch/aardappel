@@ -1,12 +1,19 @@
 "use strict";
 
-angular.module("DocApp").controller("NewDocCtrl", function($scope, $location, $routeParams, $window, $q, DocFactory, SegmentFactory, TeamFactory) {
+angular.module("DocApp").controller("NewDocCtrl",
+function(
+  $scope, $q,
+  NavServices,
+  DocFactory, SegmentFactory, TeamFactory
+) {
 
   //Verifies user has access to team, redirecting to team-login view if not
   const loggedInUid = firebase.auth().currentUser.uid;
-  TeamFactory.verifyUserAccess($routeParams.team_id, loggedInUid)
+  const thisTeamsID = NavServices.getTeamsID();
+
+  TeamFactory.verifyUserAccess(thisTeamsID, loggedInUid)
   .then(teamData => $scope.team = teamData)
-  .catch(() => $location.path('/team-login'));
+  .catch(() => NavServices.toTeamsLogin());
 
   // Only runs on success of TeamFactory.verifyUserAccess()
   let docID,
@@ -18,7 +25,7 @@ angular.module("DocApp").controller("NewDocCtrl", function($scope, $location, $r
   $scope.doc = {
     uid: loggedInUid,
     completed: false,
-    team_id: $routeParams.team_id,
+    team_id: thisTeamsID,
     title: ''
   };
 
@@ -29,7 +36,7 @@ angular.module("DocApp").controller("NewDocCtrl", function($scope, $location, $r
     let promises = [];
     keys.forEach(key => promises.push(SegmentFactory.deleteSegment(key)));
     $q.all(promises)
-    .then(() => $location.path(`/docs/${$routeParams.team_id}`))
+    .then(() => NavServices.toAllDocs(thisTeamsID))
     .catch(err => console.log(err));
   };
 
@@ -38,9 +45,9 @@ angular.module("DocApp").controller("NewDocCtrl", function($scope, $location, $r
       DocFactory.deleteDoc(docID)
       .then(() => SegmentFactory.getSegments(docID))
       .then(data => deleteSegments(data)) // Delete segs in db
-      .catch(err => $location.path(`docs/${$routeParams.team_id}`));
+      .catch(err => NavServices.toAllDocs(thisTeamsID));
     } else {
-      $window.location.href = `#!/docs/${$routeParams.team_id}`;
+      NavServices.toAllDocs(thisTeamsID);
     }
   };
 // TODO: (1) Not use a text area, in order to have <span>
@@ -59,7 +66,7 @@ angular.module("DocApp").controller("NewDocCtrl", function($scope, $location, $r
         }
         return $q.all(promises);
       })
-      .then(() => $location.path(`/docs/${$routeParams.team_id}`))
+      .then(() => NavServices.toAllDocs(thisTeamsID))
       .catch(err => console.log(err));
     }
   };

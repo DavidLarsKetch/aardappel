@@ -1,6 +1,8 @@
 <div>
   <input type="search" ng-model="searchTerm" placeholder="Search for a team">
-  <a href="#!/team-login/register"><h4>Create a new team</h4></a>
+  <button ng-click="toTeamRegister()" name="register-team">
+    Create a new team
+  </button>
 </div>
 <h2>Joined Teams</h2>
 <div ng-repeat="team in usersTeams | filter: {displayName: searchTerm}">

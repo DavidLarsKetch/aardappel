@@ -1,6 +1,12 @@
 "use strict";
 
-angular.module("DocApp").controller("TeamRegisterCtrl", function($scope, $location, TeamFactory) {
+angular.module("DocApp").controller("TeamRegisterCtrl",
+function(
+  $scope,
+  NavServices,
+  TeamFactory
+) {
+  
   $scope.team = {
     displayName: '',
     password: '',
@@ -8,12 +14,12 @@ angular.module("DocApp").controller("TeamRegisterCtrl", function($scope, $locati
     owner: firebase.auth().currentUser.uid
   };
 
+  $scope.toTeamsLogin = () => NavServices.toTeamsLogin();
+
   $scope.registerTeam = () => {
     if($scope.team.password === $scope.reenter)
     // TODO: Check for whether team name already exists, deny registration if so
       TeamFactory.postTeam($scope.team)
-      .then(teamID => {
-        $location.path(`/docs/${teamID}`);
-      });
+      .then(teamID => NavServices.toAllDocs(teamID));
   };
 });
