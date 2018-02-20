@@ -1,17 +1,11 @@
+@import '_variables';
+
+* :focus {
+  outline: none;
+}
+
 .added {
   background-color: lightgreen;
-}
-
-.new-comment-box {
-  border: 1px solid;
-  height: 100px;
-  padding: .5rem;
-  width: 400px;
-}
-
-.inline-comment-box {
-  border: 1px solid;
-  padding: .5rem;
 }
 
 .commented {
@@ -22,11 +16,52 @@
   background-color: lightcoral;
 }
 
-* :focus {
-  outline: none;
+.doc-title-span {
+  font-weight: bold;
+  margin: $main-margin;
+  text-align: center;
 }
+
+.inline-comment-box {
+  border: $border;
+  padding: .5rem;
+}
+
+.main-margin {
+  margin: $main-margin;
+}
+
+.mobile-view {
+  border: $border;
+  height: 800px;
+  margin: 0 auto;
+  overflow: auto;
+  padding: 1rem;
+  width: 375px;
+}
+
+.nav-buttons {
+  margin: $main-margin;
+}
+
+.new-comment-box {
+  border: $border;
+  height: 100px;
+  padding: .5rem;
+  width: 300px;
+}
+
 .new-doc-text {
-  border: 1px solid;
+  border: $border;
   height: 400px;
-  width: 250px;
+  width: 300px;
+}
+
+.review-buttons {
+  margin: $main-margin;
+}
+
+.text-wrapper {
+  line-height: 150%;
+  text-align: justify;
 }
