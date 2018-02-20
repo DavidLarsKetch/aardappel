@@ -29,13 +29,7 @@
   <button type="button" name="saveComment" ng-click="saveComment()">Save</button>
   <button type="button" name="cancelComment" ng-click="toggleCommentBox()">Cancel</button>
 </div>
-<div ng-show="showWrapper">
-  <div id="reviewBox" class="inline-comment-box">
-    <span id="updatedReviewText" contenteditable="true" ng-blur="updateReview()">{{reviewItem.text}}</span>
-    <p>{{reviewItem.displayName}}</p>
-  </div>
-
 </div>
 <div class="text-wrapper">
-  <span ng-repeat="segment in segments" id="{{segment.firebaseID}}" class="{{segment.classes}}" contenteditable="true" ng-blur="diff(segment.firebaseID, segment.text)" ng-click="activateReviewBox(segment)">{{segment.text}} </span>
+  <span ng-repeat="segment in segments" id="{{segment.firebaseID}}" class="{{segment.classes}}" contenteditable="true" ng-blur="diff(segment.firebaseID, segment.text)" ng-click="toggleReviewBox(segment)">{{segment.text}} </span>
 </div>

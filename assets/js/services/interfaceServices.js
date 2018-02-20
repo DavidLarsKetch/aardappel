@@ -9,6 +9,8 @@ angular.module("DocApp").service("InterfaceServices", function() {
     .filter(({localName}) => localName === "span");
 
   const findSegment = segments => {
+    // Removes currently viewed comment
+    angular.element(document.getElementById("reviewBox")).remove();
     // Gets the DOM elm with the comment to show
     let commentToShow = comments()[currentIndex];
     // Gets the segment associated with the current comment
@@ -31,5 +33,18 @@ angular.module("DocApp").service("InterfaceServices", function() {
     .findIndex(comment => comment.id === id);
   };
 
-  return {findSegment, next, prev, setIndex};
+  const constructReviewBox = classes =>
+    angular.element(
+      `<div id="reviewBox" class="commented inline-comment-box">
+        <span id="updatedReviewText" contenteditable="true" ng-blur="updateReview()">
+          {{reviewItem.text}}
+        </span>
+        <p>
+          {{reviewItem.displayName}}
+        </p>
+      </div>`
+    );
+
+
+  return {findSegment, next, prev, setIndex, constructReviewBox};
 });

@@ -11,6 +11,7 @@ function(
   const thisDocID = NavServices.getDocID();
   const thisTeamsID = NavServices.getTeamsID();
   $scope.reviewItem = {};
+  let commentInView = false;
 
 ////// INTERNAL FUNCTIONS
 ///// Reprints doc's latest segments in Firebase
@@ -371,6 +372,40 @@ function(
     .catch(err => console.log(err));
   };
 
+  $scope.toggleReviewBox = segment => {
+    if (BoolServices.hasClass(segment.classes, "commented")) {
+      angular.element(document.getElementById("reviewBox")).remove();
+
+      CommentFactory.getComment(segment.firebaseID)
+      .then(comment => {
+        commentInView =
+        commentInView && $scope.reviewItem.text === comment.text ? false : true;
+
+      // Assigns comment to reviewItem for printing & manipulating
+        $scope.reviewItem = comment;
+      // Gets displayName from commenter's uid
+        return UserFactory.getUser(comment.uid);
+      })
+      .then(({displayName}) => {
+        $scope.reviewItem.displayName = `- ${displayName}`;
+
+        if (commentInView) {
+        // Wraps targeted 'commented' segment for jqLite functionality.
+          let targetCommentElm = angular.element(document.getElementById(segment.firebaseID));
+
+        // Grabs, compiles, & inserts review box div living
+        // in InterfaceServices after commented segment
+          let commentDiv = InterfaceServices.constructReviewBox();
+          targetCommentElm.after($compile(commentDiv)($scope));
+
+        // Sets current index for comment navigate buttons
+          InterfaceServices.setIndex(segment.firebaseID);
+
+        }
+      })
+      .catch(err => console.log(err));
+    }
+  };
 ////// Toggles showing the reviewBox with the review item & its classes
   $scope.activateReviewBox = segment => {
 
@@ -452,13 +487,13 @@ function(
   $scope.nextComment = () => {
     InterfaceServices.next();
     let segment = InterfaceServices.findSegment($scope.segments);
-    $scope.activateReviewBox(segment);
+    $scope.toggleReviewBox(segment);
   };
 
   $scope.prevComment = () => {
     InterfaceServices.prev();
     let segment = InterfaceServices.findSegment($scope.segments);
-    $scope.activateReviewBox(segment);
+    $scope.toggleReviewBox(segment);
   };
 
   $scope.toAllDocs = () => NavServices.toAllDocs(thisTeamsID);
