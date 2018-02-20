@@ -8,6 +8,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
   $scope.reviewItem = {};
 
 ////// INTERNAL FUNCTIONS
+///// Reprints doc's latest segments in Firebase
   const reprint = () =>
     SegmentFactory.getSegments(thisDocID)
     .then(segments => $scope.segments = segments)
@@ -181,23 +182,26 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     let suggestionSegment = $scope.segments[idx + 1],
     overwriteText = document.getElementById(id).innerHTML.trim();
 
-    SegmentFactory.patchSegment(suggestionSegment.firebaseID, {text: overwriteText})
-    .then(() => reprint());
+    if (BoolServices.hasClass(suggestionSegment.classes, "added")) {
+      SegmentFactory.patchSegment(suggestionSegment.firebaseID, {text: overwriteText})
+      .then(() => reprint());
+    } else {
+      createNewEditSuggestion(idx);
+    }
   };
 
 ////// PARTIAL-FACING FUNCTIONS
 
 ////// Allows cancelling of changes made
-  $scope.cancel = () => {
-    removeTemporary(true)
+  $scope.cancel = () =>
+    $q.all(tempSuggestions.delete())
     .then(() => $location.path(`/docs/${thisTeamsID}`))
     .catch(err => console.log(err));
-  };
 
 ////// Allows user to keep doc in 'pending' without 'cancelling' or
     // 'completing' the editing
   $scope.save = () =>
-    removeTemporary(false)
+    $q.all(tempSuggestions.keep())
     .then(() => $window.location.href = `#!/docs/${thisTeamsID}`)
     .catch(err => console.log(err));
 
@@ -207,7 +211,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     $scope.doc.reviewer = loggedInUid;
 
     DocFactory.putDoc($scope.doc)
-    .then(() => removeTemporary(false))
+    .then(() => $q.all(tempSuggestions.keep()))
     .then(() => $location.path(`docs/${thisTeamsID}`))
     .catch(err => console.log(err));
   };
