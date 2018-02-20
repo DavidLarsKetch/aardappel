@@ -1,87 +1,137 @@
 "use strict";
 
-angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $location, $routeParams, $q, $window, BoolServices, CommentFactory, DocFactory, SegmentFactory, TeamFactory, UserFactory) {
+angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $location, $routeParams, $q, $window, BoolServices, CommentFactory, DocFactory, InterfaceServices, SegmentFactory, TeamFactory, UserFactory) {
 
   const loggedInUid = firebase.auth().currentUser.uid;
   const thisDocID = $routeParams.doc_id;
   const thisTeamsID = $routeParams.team_id;
   $scope.reviewItem = {};
-  let loggedInDisplayName, overwriteText, toCheck, updatedText;
 
 ////// INTERNAL FUNCTIONS
+///// Reprints doc's latest segments in Firebase
   const reprint = () =>
     SegmentFactory.getSegments(thisDocID)
     .then(segments => $scope.segments = segments)
     .catch(err => console.log(err));
 
-////// Removes temporary edits from the database; passing in 'true' means to
-    // reset segments to their unedited status, passing in 'false' means to
-    // remove the temporary status of suggested edits
-  const removeTemporary = bool =>
-    SegmentFactory.getSegments(thisDocID)
-    .then(segments => {
-      let promises = [];
-
-      if (bool) {
-        promises.concat(segments.filter(segment =>
-          checkUidTemp(segment) && segment.classes.includes("deleted")
-        ).map(segment =>
+////// Removes or saves temporary edit suggestions
+  const tempSuggestions = {
+    // Removes temporary edit suggestions made by the current user in the
+    // current session
+    delete: segments => {
+      return SegmentFactory.getSegments(thisDocID)
+      .then(segments => {
+        let promises = segments
+    // Finds segments that were marked for deletion
+        .filter(({classes, uid}) =>
+          BoolServices.isUidTemp(uid, loggedInUid) && BoolServices.hasClass(classes, "deleted")
+        )
+    // Removes "classes" & "uid_temp" from that segment
+        .map(({firebaseID}) =>
           SegmentFactory.patchSegment(
-            segment.firebaseID, {classes: null, uid_temp: null}
+            firebaseID, {classes: null, uid_temp: null}
           )
+        );
+    // Finds segments that were marked for addition
+        promises.concat(segments
+          .filter(({classes, uid}) =>
+            BoolServices.isUidTemp(uid, loggedInUid) && BoolServices.hasClass(classes, "added")
+          )
+    // Deletes those segments
+          .map(({firebaseID}) =>
+            SegmentFactory.deleteSegment(firebaseID)
+          )
+        );
+        return $q.all(promises);
+      })
+    // Retrieves the state of the doc
+      .then(() => SegmentFactory.getSegments(thisDocID))
+    // Updates the "doc_order" of the segments according to their final
+    // place in the doc
+      .then(segments => {
+        let promises = segments.map((segment, index) =>
+          SegmentFactory.patchSegment(
+            segment.firebaseID, {doc_order: index}
+          )
+        );
+        return $q.all(promises);
+      });
+    },
+    // Makes edit suggestions permanent for edits made by the current user
+    keep: segments => {
+      return SegmentFactory.getSegments(thisDocID)
+      .then(segments => segments
+        .filter(({uid}) => BoolServices.isUidTemp(uid, loggedInUid))
+    // Removes "uid_temp" indicating its permanent suggestion
+        .map(({firebaseID}) => SegmentFactory.patchSegment(
+          firebaseID, {uid_temp: null}
+        ))
+      );
+    }
+  };
+
+////// Provides functions for updating the doc with suggested additions,
+    // deletions and edits
+  const updater = {
+    adds: (toAdd, originalText, idx) => {
+      let arrayIdx = toAdd.indexOf(originalText);
+    // Posts new text segment(s) added, calculating their doc_order based
+    // on the original segment's doc_order + that segment's index in the
+    // array of segments
+      let promises = toAdd.map((segment, index) => {
+        if (arrayIdx !== index)
+          SegmentFactory.postSegment({
+            classes: ["added"],
+            doc_id: thisDocID,
+            doc_order: $scope.segments[idx].doc_order + index,
+            text: segment,
+            uid_temp: loggedInUid
+          });
+      });
+    // If the original segment is not the first segment in the array of
+    // segments, then adds to that segment's doc_order its place in the
+    // array of segments
+      if (arrayIdx !== 0)
+        promises.push(SegmentFactory.patchSegment(
+          $scope.segments[idx].firebaseID,
+          {doc_order: $scope.segments[idx].doc_order + arrayIdx}
         ));
 
-        promises.concat(segments.filter(segment =>
-          checkUidTemp(segment) && segment.classes.includes("added")
-        ).map(segment =>
-          SegmentFactory.deleteSegment(segment.firebaseID)
-        ));
-
-      } else if (!bool) {
-        promises.concat(segments.filter(segment =>
-          checkUidTemp(segment)
-        ).map(segment =>
-          SegmentFactory.patchSegment(segment.firebaseID, {uid_temp: null})
+    // Updates each succeeding segment in the doc with its new doc_order
+      for (let i = idx + 1; i < $scope.segments.length; i++) {
+        promises.push(SegmentFactory.patchSegment(
+          $scope.segments[i].firebaseID,
+          {doc_order: $scope.segments[i].doc_order + toAdd.length - 1}
         ));
       }
 
-      return $q.all(promises);
-    });
+      $q.all(promises)
+      .then(() => reprint());
+    },
+    // Marks text segment for deletion with "deleted" class
+    deletes: toDelete =>
+      SegmentFactory.patchSegment(
+        toDelete, {classes: ["deleted"], uid_temp: loggedInUid}
+      ).then(() => reprint()),
 
-////// Creates new edit suggestion, updating old segment with 'deleted', posting
-    // posting new segment, & updating doc_order of succeeding segments
-  const createNewEditSuggestion = idx => {
-    // Gets text of the suggested edit
-    let text =
-      document.getElementById($scope.segments[idx].firebaseID)
-      .innerHTML.trim();
-    // Segments text in order to break apart sentences in the suggested
-    // edit
-    let segments = SegmentFactory.segmentText(text);
-
+    edits: (toEdit, idx) => {
     // Builds object for new text segment to be posted to database while
     // posting it to database
-    let promises = segments.map((segment, index) =>
-      SegmentFactory.postSegment({
-        classes: ["added"],
-        doc_id: thisDocID,
-        doc_order: $scope.segments[idx].doc_order + 1 + index,
-        text: segment,
-        uid_temp: loggedInUid
-      })
-    );
+      let promises = toEdit.map((segment, index) =>
+        SegmentFactory.postSegment({
+          classes: ["added"],
+          doc_id: thisDocID,
+          doc_order: $scope.segments[idx].doc_order + 1 + index,
+          text: segment,
+          uid_temp: loggedInUid
+        })
+      );
 
-    $q.all(promises)
-    .then(() => {
-      let promises = [];
     // Updates the original segment with class 'deleted', pushing the
     // patch to a Promise.all array
       promises.push(SegmentFactory.patchSegment(
         $scope.segments[idx].firebaseID,
-        {
-          classes: ["deleted"],
-          uid_temp: loggedInUid
-        }
+        {classes: ["deleted"], uid_temp: loggedInUid}
       ));
 
     // Updates the order of each segment in the doc coming after the
@@ -89,20 +139,39 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       for (let i = idx + 1; i < $scope.segments.length; i++) {
         promises.push(SegmentFactory.patchSegment(
           $scope.segments[i].firebaseID,
-          {doc_order: $scope.segments[i].doc_order + segments.length}
+          {doc_order: $scope.segments[i].doc_order + toEdit.length}
         ));
       }
 
-      return $q.all(promises);
-    })
+      $q.all(promises)
     // Gets updated data and reprints to the DOM
-    .then(() => SegmentFactory.getSegments(thisDocID))
-    .then(segments => $scope.segments = segments)
-    .catch(err => console.log(err));
+      .then(() => reprint());
+    }
+  };
+
+////// Creates new edit suggestion, updating old segment with 'deleted', posting
+    // posting new segment, & updating doc_order of succeeding segments
+  const createNewEditSuggestion = idx => {
+    let IDofOriginal = $scope.segments[idx].firebaseID;
+    let textOfOriginal = $scope.segments[idx].text;
+    // Gets text of the suggested edit
+    let text =
+      document.getElementById(IDofOriginal)
+      .innerHTML.trim();
+    // Segments text in order to break apart sentences in the suggested
+    // edit
+    let segments = SegmentFactory.segmentText(text);
+    if (!segments) {
+      updater.deletes(IDofOriginal);
+    } else if (segments.includes(textOfOriginal)) {
+      updater.adds(segments, textOfOriginal, idx);
+    } else {
+      updater.edits(segments, idx);
+    }
   };
 
   const updateEditSuggestion = (id, optionalID) => {
-    updatedText =
+    let updatedText =
     optionalID ? document.getElementById(optionalID).innerHTML.trim() : document.getElementById(id).innerHTML.trim();
 
     SegmentFactory.patchSegment(id, {text: updatedText})
@@ -110,26 +179,29 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
   };
 
   const overwriteEditSuggestion = (id, idx) => {
-    let suggestionSegment = $scope.segments[idx + 1];
+    let suggestionSegment = $scope.segments[idx + 1],
     overwriteText = document.getElementById(id).innerHTML.trim();
 
-    SegmentFactory.patchSegment(suggestionSegment.firebaseID, {text: overwriteText})
-    .then(() => reprint());
+    if (BoolServices.hasClass(suggestionSegment.classes, "added")) {
+      SegmentFactory.patchSegment(suggestionSegment.firebaseID, {text: overwriteText})
+      .then(() => reprint());
+    } else {
+      createNewEditSuggestion(idx);
+    }
   };
 
 ////// PARTIAL-FACING FUNCTIONS
 
 ////// Allows cancelling of changes made
-  $scope.cancel = () => {
-    removeTemporary(true)
+  $scope.cancel = () =>
+    $q.all(tempSuggestions.delete())
     .then(() => $location.path(`/docs/${thisTeamsID}`))
     .catch(err => console.log(err));
-  };
 
 ////// Allows user to keep doc in 'pending' without 'cancelling' or
     // 'completing' the editing
   $scope.save = () =>
-    removeTemporary(false)
+    $q.all(tempSuggestions.keep())
     .then(() => $window.location.href = `#!/docs/${thisTeamsID}`)
     .catch(err => console.log(err));
 
@@ -139,7 +211,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     $scope.doc.reviewer = loggedInUid;
 
     DocFactory.putDoc($scope.doc)
-    .then(() => removeTemporary(false))
+    .then(() => $q.all(tempSuggestions.keep()))
     .then(() => $location.path(`docs/${thisTeamsID}`))
     .catch(err => console.log(err));
   };
@@ -168,7 +240,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       let originalSegmentIdx = $scope.segments.findIndex(
         segment => segment.firebaseID === id
       );
-      toCheck = $scope.segments[originalSegmentIdx].classes;
+      let toCheck = $scope.segments[originalSegmentIdx].classes;
     // Passes when user changes text of a green highlighted 'added'
     // segment, updating the suggestion
       if (BoolServices.hasClass(toCheck, "added")) {
@@ -218,66 +290,61 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     // (2) deletes old segment from DB
     SegmentFactory.deleteSegment(selParentID)
     .then(() => {
+      let toCheck = $scope.segments[originalSegmentIdx];
     // (3) Breaks apart segments based upon the selected div
       let newSegments = SegmentFactory.breakOutSegment(
-        selParentID, sel.baseOffset, sel.focusOffset
+        selParentID, sel.baseOffset, sel.extentOffset
       );
+      newSegments = newSegments.map((segment, index) => {return {
+        doc_id: thisDocID,
+        doc_order: originalSegmentIdx + index,
+        text: segment
+      };});
 
-      let j = originalSegmentIdx;
+    // A = original segment has classes
+    // B = string is the one being commented upon
+    promises = newSegments     // !A && !B
+      .filter(({text}) =>
+        text !== sel.toString() && !toCheck.hasOwnProperty("classes")
+      )
+      .map(segment => SegmentFactory.postSegment(segment));
 
-      for (let i = 0; i < newSegments.length; i++) {
-    // (4) Converts each newSegment element into an object
-        newSegments[i] = {
-          doc_id: thisDocID,
-          doc_order: j,
-          uid: $scope.doc.uid,
-          text: newSegments[i]
-        };
+    promises = newSegments      // A && B
+      .filter(({text}) =>
+        toCheck.hasOwnProperty("classes") && text === sel.toString()
+      )
+      .map(segment => {
+        segment.classes = toCheck.classes.split(' ');
+        segment.classes.push("commented");
+        return SegmentFactory.postSegment(segment)
+        .then(({name}) => {
+          comment.segment_id = name;
+          return CommentFactory.postComment(comment);
+        });
+      });
 
-    // If the original segment has a 'classes' property AND is the string
-    // being commented upon
-        if ($scope.segments[originalSegmentIdx].hasOwnProperty("classes") && newSegments[i].text === sel.toString()) {
-    // Split the original segments 'classes' string into an array
-          newSegments[i].classes = $scope.segments[originalSegmentIdx].classes.split(' ');
-    // Adds the "commented" class to that 'classes' array
-          newSegments[i].classes.push("commented");
-    // Pushes that new segment to Promise.all(promises)
-          promises.push(
-            SegmentFactory.postSegment(newSegments[i])
-    // (5) Then posts the comment related to that commented upon segment to
-    // the DB, using the firebaseID returned by posting that segment
-            .then(({name}) => {
-              comment.segment_id = name;
-              return CommentFactory.postComment(comment);
-            })
-          );
-    // If the original segment has a 'classes' property
-        } else if ($scope.segments[originalSegmentIdx].hasOwnProperty("classes")) {
-    // Adds 'classes' property from the original segment
-            newSegments[i].classes = $scope.segments[originalSegmentIdx].classes.split(' ');
-    // (5) Pushes that new segment to Promise.all(promises)
-            promises.push(SegmentFactory.postSegment(newSegments[i]));
+    promises = newSegments      // A && !B
+      .filter(({text}) =>
+        toCheck.hasOwnProperty("classes") && text !== sel.toString()
+      )
+      .map(segment => {
+        segment.classes = toCheck.classes.split(' ');
+        return SegmentFactory.postSegment(segment);
+      });
 
-    // If the segment is the commented upon segment AND does not have
-    // any suggested edits already
-          } else if (newSegments[i].text === sel.toString()) {
-            newSegments[i].classes = ["commented"];
-    // (5) Then posts the comment related to that commented upon segment to
-    // the DB, using the firebaseID returned by posting that segment
-            promises.push(
-              SegmentFactory.postSegment(newSegments[i])
-              .then(({name}) => {
-                comment.segment_id = name;
-                return CommentFactory.postComment(comment);
-              })
-            );
+    promises = newSegments     // !A && B
+      .filter(({text}) =>
+        !toCheck.hasOwnProperty("classes") && text === sel.toString()
+      )
+      .map(segment => {
+        segment.classes = ["commented"];
+        return SegmentFactory.postSegment(segment)
+        .then(({name}) => {
+          comment.segment_id = name;
+          return CommentFactory.postComment(comment);
+        });
+      });
 
-          } else {
-            promises.push(SegmentFactory.postSegment(newSegments[i]));
-          }
-          j++;
-        }
-    // (6) updates segments coming after new segments with new doc_order
       for (let i = originalSegmentIdx + 1; i < $scope.segments.length; i++) {
         promises.push(SegmentFactory.patchSegment(
           $scope.segments[i].firebaseID,
@@ -315,6 +382,10 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
 
     // Assigns comment to reviewItem for printing & manipulating
         $scope.reviewItem = comment;
+
+    // For 'next comment' & 'prev comment' buttons, sets starting point
+    // index
+      InterfaceServices.setIndex(segment.firebaseID);
 
     // Gets displayName from commenter's uid
         return UserFactory.getUser(comment.uid);
@@ -372,18 +443,24 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     }
   };
 
+  $scope.nextComment = () => {
+    InterfaceServices.next();
+    let segment = InterfaceServices.findSegment($scope.segments);
+    $scope.activateReviewBox(segment);
+  };
+
+  $scope.prevComment = () => {
+    InterfaceServices.prev();
+    let segment = InterfaceServices.findSegment($scope.segments);
+    $scope.activateReviewBox(segment);
+  };
+
 ////// ON-PAGE LOAD FUNCTIONS
 
 ////// Verifies user has access to team, redirects to team-login if not
   TeamFactory.verifyUserAccess(thisTeamsID, loggedInUid)
     // Gets the team's display name
-  .then(({displayName}) => {
-    $scope.teamName = displayName;
-    // Get logged in user's data in order to have displayName on hand for
-    // making edits.
-    return UserFactory.getUser(loggedInUid);
-  })
-  .then(({displayName}) => loggedInDisplayName = displayName)
+  .then(({displayName}) => $scope.teamName = displayName)
   .catch(() => $location.path('/team-login'));
 
 ////// Gets the doc, doc owner's displayName, & doc's segments
