@@ -11,7 +11,8 @@ function(
   const thisDocID = NavServices.getDocID();
   const thisTeamsID = NavServices.getTeamsID();
   $scope.reviewItem = {};
-  let commentInView = false;
+  let commentInView = false,
+  sel = {};
 
 ////// INTERNAL FUNCTIONS
 ///// Reprints doc's latest segments in Firebase
@@ -271,54 +272,65 @@ function(
   $scope.toggleCommentBox = () => {
     $scope.commentActive = $scope.commentActive ? false : true;
     document.getElementById("newCommentBox").innerHTML = '';
+
+    if (document.getSelection().toString() && $scope.commentActive) {
+      sel = {
+        baseOffset: document.getSelection().baseOffset,
+        extentOffset: document.getSelection().extentOffset,
+        parentID: document.getSelection().extentNode.parentElement.id,
+        text: document.getSelection().toString()
+      };
+    } else {
+      sel = {};
+    }
   };
 
-////// Saves comments to database. (1) Constructs necessary pieces for
-    // updating, (2) deletes old segment being commented upon, (3)
-    // splits segment into parts, (4) assigns remaining properties,
-    // retaining classes subject to conditions, (5) posts new segments,
-    // (6) updates segments succeeding new ones with their up-to-date
-    // doc_order
+////// Saves comments to database.
   $scope.saveComment = () => {
-    // (1)
     let promises = [];
     let comment = {
       uid: loggedInUid,
       segment_id: null,
       text: document.getElementById("newCommentBox").innerHTML.trim(),
     };
-    let sel = document.getSelection();
-    let selParentID = sel.focusNode.parentElement.id;
+    if (!BoolServices.notUndefined(sel.text)) {
+      sel = {
+        baseOffset: document.getSelection().baseOffset,
+        extentOffset: document.getSelection().extentOffset,
+        parentID: document.getSelection().extentNode.parentElement.id,
+        text: document.getSelection().toString()
+      };
+    }
 
     let originalSegmentIdx = $scope.segments.findIndex(
-      segment => segment.firebaseID === selParentID
+      segment => segment.firebaseID === sel.parentID
     );
 
-    // (2) deletes old segment from DB
-    SegmentFactory.deleteSegment(selParentID)
+    // Deletes old segment from DB
+    SegmentFactory.deleteSegment(sel.parentID)
     .then(() => {
       let toCheck = $scope.segments[originalSegmentIdx];
-    // (3) Breaks apart segments based upon the selected div
+    // Breaks apart segments based upon the selected div
       let newSegments = SegmentFactory.breakOutSegment(
-        selParentID, sel.baseOffset, sel.extentOffset
+        sel.parentID, sel.baseOffset, sel.extentOffset
       );
       newSegments = newSegments.map((segment, index) => {return {
         doc_id: thisDocID,
         doc_order: originalSegmentIdx + index,
         text: segment
       };});
-
+    // Builds array of promises against these value of:
     // A = original segment has classes
     // B = string is the one being commented upon
     promises = newSegments     // !A && !B
       .filter(({text}) =>
-        text !== sel.toString() && !toCheck.hasOwnProperty("classes")
+        text !== sel.text && !toCheck.hasOwnProperty("classes")
       )
       .map(segment => SegmentFactory.postSegment(segment));
 
     promises = newSegments      // A && B
       .filter(({text}) =>
-        toCheck.hasOwnProperty("classes") && text === sel.toString()
+        toCheck.hasOwnProperty("classes") && text === sel.text
       )
       .map(segment => {
         segment.classes = toCheck.classes.split(' ');
@@ -332,7 +344,7 @@ function(
 
     promises = newSegments      // A && !B
       .filter(({text}) =>
-        toCheck.hasOwnProperty("classes") && text !== sel.toString()
+        toCheck.hasOwnProperty("classes") && text !== sel.text
       )
       .map(segment => {
         segment.classes = toCheck.classes.split(' ');
@@ -341,7 +353,7 @@ function(
 
     promises = newSegments     // !A && B
       .filter(({text}) =>
-        !toCheck.hasOwnProperty("classes") && text === sel.toString()
+        !toCheck.hasOwnProperty("classes") && text === sel.text
       )
       .map(segment => {
         segment.classes = ["commented"];
@@ -351,7 +363,7 @@ function(
           return CommentFactory.postComment(comment);
         });
       });
-
+    // Updates the doc_order of each succeeding segment
       for (let i = originalSegmentIdx + 1; i < $scope.segments.length; i++) {
         promises.push(SegmentFactory.patchSegment(
           $scope.segments[i].firebaseID,
@@ -366,8 +378,8 @@ function(
     .then(segments => {
       $scope.segments = segments;
     // Clears & closes comment box
-      document.getElementById("newCommentBox").innerHTML = '';
-      $scope.showNewCommentBox = false;
+      $scope.toggleCommentBox();
+      sel = {};
     })
     .catch(err => console.log(err));
   };

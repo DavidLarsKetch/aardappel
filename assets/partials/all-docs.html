@@ -1,4 +1,4 @@
-<h3>
+<h3 class="title">
   {{team.displayName}}
 </h3>
 <div>
@@ -9,14 +9,15 @@
     Switch Teams
   </button>
 </div>
+<div class="doc-listing">
   <div>
-    <h4>My Documents Pending</h4>
+    <h3>My Documents Pending</h3>
     <div ng-repeat="doc in usersDocs | filter: {completed: false}">
       <button ng-click="toDocPending(doc.firebaseID)">{{doc.title}}</button>
     </div>
   </div>
   <div>
-    <h4>Team Documents Pending</h4>
+    <h3>Team Documents Pending</h3>
     <div ng-repeat="doc in teamDocs | filter: {completed: false}">
       <button ng-click="toDocPending(doc.firebaseID)">
         {{doc.title}} <br>
@@ -25,7 +26,7 @@
     </div>
   </div>
   <div>
-    <h4>My Documents Completed</h4>
+    <h3>My Documents Completed</h3>
     <div ng-repeat="doc in usersDocs | filter: {completed: true}">
       <button ng-click="toDocCompleted(doc.firebaseID)">
         {{doc.title}} <br>
@@ -34,7 +35,7 @@
     </div>
   </div>
   <div>
-    <h4>Team Documents Completed</h4>
+    <h3>Team Documents Completed</h3>
     <div ng-repeat="doc in teamDocs | filter: {completed: true}">
       <button class="to-doc-button" ng-click="toDocCompleted(doc.firebaseID)">
         {{doc.title}} <br>
