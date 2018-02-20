@@ -13,27 +13,62 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
     .then(segments => $scope.segments = segments)
     .catch(err => console.log(err));
 
-////// Removes temporary edits from the database; passing in 'true' means to
-    // reset segments to their unedited status, passing in 'false' means to
-    // remove the temporary status of suggested edits
-  const removeTemporary = bool =>
-    SegmentFactory.getSegments(thisDocID)
-    .then(segments => {
-      let promises = [];
-
-      if (bool) {
-        promises.concat(segments.filter(segment =>
-          checkUidTemp(segment) && segment.classes.includes("deleted")
-        ).map(segment =>
+////// Removes or saves temporary edit suggestions
+  const tempSuggestions = {
+    // Removes temporary edit suggestions made by the current user in the
+    // current session
+    delete: segments => {
+      return SegmentFactory.getSegments(thisDocID)
+      .then(segments => {
+        let promises = segments
+    // Finds segments that were marked for deletion
+        .filter(({classes, uid}) =>
+          BoolServices.isUidTemp(uid, loggedInUid) && BoolServices.hasClass(classes, "deleted")
+        )
+    // Removes "classes" & "uid_temp" from that segment
+        .map(({firebaseID}) =>
           SegmentFactory.patchSegment(
-            segment.firebaseID, {classes: null, uid_temp: null}
+            firebaseID, {classes: null, uid_temp: null}
           )
-        ));
+        );
+    // Finds segments that were marked for addition
+        promises.concat(segments
+          .filter(({classes, uid}) =>
+            BoolServices.isUidTemp(uid, loggedInUid) && BoolServices.hasClass(classes, "added")
+          )
+    // Deletes those segments
+          .map(({firebaseID}) =>
+            SegmentFactory.deleteSegment(firebaseID)
+          )
+        );
+        return $q.all(promises);
+      })
+    // Retrieves the state of the doc
+      .then(() => SegmentFactory.getSegments(thisDocID))
+    // Updates the "doc_order" of the segments according to their final
+    // place in the doc
+      .then(segments => {
+        let promises = segments.map((segment, index) =>
+          SegmentFactory.patchSegment(
+            segment.firebaseID, {doc_order: index}
+          )
+        );
+        return $q.all(promises);
+      });
+    },
+    // Makes edit suggestions permanent for edits made by the current user
+    keep: segments => {
+      return SegmentFactory.getSegments(thisDocID)
+      .then(segments => segments
+        .filter(({uid}) => BoolServices.isUidTemp(uid, loggedInUid))
+    // Removes "uid_temp" indicating its permanent suggestion
+        .map(({firebaseID}) => SegmentFactory.patchSegment(
+          firebaseID, {uid_temp: null}
+        ))
+      );
+    }
+  };
 
-        promises.concat(segments.filter(segment =>
-          checkUidTemp(segment) && segment.classes.includes("added")
-        ).map(segment =>
-          SegmentFactory.deleteSegment(segment.firebaseID)
         ));
 
       } else if (!bool) {
