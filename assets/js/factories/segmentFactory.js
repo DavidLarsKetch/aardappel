@@ -8,25 +8,30 @@ angular.module("DocApp").factory("SegmentFactory", function($q, $http, FirebaseC
     .replace(/&nbsp;/, ' ') // Replaces &nbsp; HTML entity with space
     .match(segmentRegEx);
 
-  const breakOutSegment = (segmentID, idx, range) => {
+  const breakOutSegment = (segmentID, idx1, idx2) => {
+    // TODO: Issue with breaking out segments. When a selection is made
+    // & a comment exists in that sentence prior to the selection, then
+    // the start & end are of by +1.
+    let start = idx1 < idx2 ? idx1 : idx2;
+    let end = idx1 > idx2 ? idx1 : idx2;
     let whole = document.getElementById(segmentID).innerHTML.trim();
     let segments = [];
-    // TODO: REFACTOR
-    if (idx === 0){
+
+    if (start === 0){
       segments.push(
-        whole.substring(idx, range),
-        whole.substring(range)
+        whole.substring(start, end),
+        whole.substring(end)
       );
-    } else if (range === whole.length) {
+    } else if (end === whole.length) {
       segments.push(
-        whole.substring(0, idx),
-        whole.substring(idx)
+        whole.substring(0, start),
+        whole.substring(end)
       );
     } else {
       segments.push(
-        whole.substring(0, idx),
-        whole.substring(idx, range),
-        whole.substring(range)
+        whole.substring(0, start),
+        whole.substring(start, end),
+        whole.substring(end)
       );
     }
     return segments;

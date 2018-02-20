@@ -293,7 +293,7 @@ angular.module("DocApp").controller("ReviewCtrl", function($scope, $document, $l
       let toCheck = $scope.segments[originalSegmentIdx];
     // (3) Breaks apart segments based upon the selected div
       let newSegments = SegmentFactory.breakOutSegment(
-        selParentID, sel.baseOffset, sel.focusOffset
+        selParentID, sel.baseOffset, sel.extentOffset
       );
       newSegments = newSegments.map((segment, index) => {return {
         doc_id: thisDocID,
