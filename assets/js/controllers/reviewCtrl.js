@@ -406,45 +406,6 @@ function(
       .catch(err => console.log(err));
     }
   };
-////// Toggles showing the reviewBox with the review item & its classes
-  $scope.activateReviewBox = segment => {
-
-    // Passes if clicked on segment is "commented"
-    if (BoolServices.hasClass(segment.classes, "commented")) {
-    // Gets the comment from the database
-      CommentFactory.getComment(segment.firebaseID)
-      .then(comment => {
-    // Toggles showing the reviewBox wrapper
-        $scope.showWrapper =
-          $scope.showWrapper && $scope.reviewItem.text === comment.text ? false : true;
-
-    // Gives reviewBox comment's classes
-        document.getElementById("reviewBox").classList = `${segment.classes} inline-comment-box`;
-
-    // Assigns comment to reviewItem for printing & manipulating
-        $scope.reviewItem = comment;
-
-    // Sets current index for comment navigate buttons
-        InterfaceServices.setIndex(segment.firebaseID);
-
-    // Gets displayName from commenter's uid
-        return UserFactory.getUser(comment.uid);
-      })
-      .then(({displayName}) =>
-        $scope.reviewItem.displayName = `- ${displayName}`
-      )
-      .catch(err => console.log(err));
-    // Passes if the clicked on segment is "added" or "deleted"
-    // TODO: With new UI, decide whether this functionality is desirable
-  } else if (BoolServices.notUndefined(segment.classes) && !BoolServices.hasClass(segment.classes, "commented")) {
-      $scope.showWrapper =
-        $scope.showWrapper && $scope.reviewItem.text === segment.text ? false : true;
-
-      document.getElementById("reviewBox").classList = `${segment.classes} inline-comment-box`;
-
-      $scope.reviewItem = segment;
-    }
-  };
 
 ////// Updates review with new review text (& uid if comment) if user
     // changes that text
