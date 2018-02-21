@@ -9,11 +9,11 @@ function(
 
   //Verifies user has access to team, redirecting to team-login view if not
   const loggedInUid = firebase.auth().currentUser.uid;
-  const thisTeamsID = NavServices.getTeamsID();
+  const thisTeamsID = NavServices.go.getTeamsID();
 
   TeamFactory.verifyUserAccess(thisTeamsID, loggedInUid)
   .then(teamData => $scope.team = teamData)
-  .catch(() => NavServices.toTeamsLogin());
+  .catch(() => NavServices.go.toTeamsLogin());
 
   // Only runs on success of TeamFactory.verifyUserAccess()
   let docID,
@@ -36,7 +36,7 @@ function(
     let promises = [];
     keys.forEach(key => promises.push(SegmentFactory.deleteSegment(key)));
     $q.all(promises)
-    .then(() => NavServices.toAllDocs(thisTeamsID))
+    .then(() => NavServices.go.toAllDocs(thisTeamsID))
     .catch(err => console.log(err));
   };
 
@@ -45,9 +45,9 @@ function(
       DocFactory.deleteDoc(docID)
       .then(() => SegmentFactory.getSegments(docID))
       .then(data => deleteSegments(data)) // Delete segs in db
-      .catch(err => NavServices.toAllDocs(thisTeamsID));
+      .catch(err => NavServices.go.toAllDocs(thisTeamsID));
     } else {
-      NavServices.toAllDocs(thisTeamsID);
+      NavServices.go.toAllDocs(thisTeamsID);
     }
   };
 // TODO: (1) Not use a text area, in order to have <span>
@@ -66,7 +66,7 @@ function(
         }
         return $q.all(promises);
       })
-      .then(() => NavServices.toAllDocs(thisTeamsID))
+      .then(() => NavServices.go.toAllDocs(thisTeamsID))
       .catch(err => console.log(err));
     }
   };

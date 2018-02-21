@@ -6,11 +6,11 @@ function(
   NavServices,
   DocFactory, TeamFactory, UserFactory
 ) {
-  
+
   $scope.usersDocs = [];
   $scope.teamDocs = [];
   const loggedInUid = firebase.auth().currentUser.uid;
-  const thisTeamsID = NavServices.getTeamsID();
+  const thisTeamsID = NavServices.go.getTeamsID();
   let docs;
 
   // Attaches display name for the doc owner. all-docs.html prints display
@@ -76,15 +76,15 @@ function(
     .catch(err => console.log(err));
   };
 
-  $scope.toNewDoc = () => NavServices.toNewDoc($scope.team.firebaseID);
-  $scope.toTeamsLogin = () => NavServices.toTeamsLogin();
+  $scope.toNewDoc = () => NavServices.go.toNewDoc($scope.team.firebaseID);
+  $scope.toTeamsLogin = () => NavServices.go.toTeamsLogin();
   $scope.toDocCompleted =
-    doc_id => NavServices.toDocCompleted(thisTeamsID, doc_id);
+    doc_id => NavServices.go.toDocCompleted(thisTeamsID, doc_id);
   $scope.toDocPending =
-    doc_id => NavServices.toDocPending(thisTeamsID, doc_id);
+    doc_id => NavServices.go.toDocPending(thisTeamsID, doc_id);
 
   //Verifies user has access to team, redirects to team-login otherwise
   TeamFactory.verifyUserAccess(thisTeamsID, loggedInUid)
   .then(team => getDataForPage(team)) // Kicks off getting data for page
-  .catch(() => NavServices.toTeamsLogin());
+  .catch(() => NavServices.go.toTeamsLogin());
 });

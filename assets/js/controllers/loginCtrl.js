@@ -12,9 +12,7 @@ function(
 
   $scope.login = () =>
     AuthFactory.login($scope.auth)
-    .then(() => NavServices.toTeamsLogin());
-
-  $scope.logout = () => AuthFactory.logout();
+    .then(() => NavServices.go.toTeamsLogin());
 
   $scope.registerEmail = () => {
     if($scope.user.displayName)

@@ -6,7 +6,7 @@ function(
   NavServices,
   TeamFactory
 ) {
-  
+
   $scope.team = {
     displayName: '',
     password: '',
@@ -14,12 +14,12 @@ function(
     owner: firebase.auth().currentUser.uid
   };
 
-  $scope.toTeamsLogin = () => NavServices.toTeamsLogin();
+  $scope.toTeamsLogin = () => NavServices.go.toTeamsLogin();
 
   $scope.registerTeam = () => {
     if($scope.team.password === $scope.reenter)
     // TODO: Check for whether team name already exists, deny registration if so
       TeamFactory.postTeam($scope.team)
-      .then(teamID => NavServices.toAllDocs(teamID));
+      .then(teamID => NavServices.go.toAllDocs(teamID));
   };
 });

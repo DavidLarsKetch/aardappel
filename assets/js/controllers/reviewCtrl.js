@@ -8,8 +8,8 @@ function(
 ) {
 
   const loggedInUid = firebase.auth().currentUser.uid;
-  const thisDocID = NavServices.getDocID();
-  const thisTeamsID = NavServices.getTeamsID();
+  const thisDocID = NavServices.go.getDocID();
+  const thisTeamsID = NavServices.go.getTeamsID();
   $scope.reviewItem = {};
   let commentInView = false,
   sel = {};
@@ -469,7 +469,7 @@ function(
     $scope.toggleReviewBox(segment);
   };
 
-  $scope.toAllDocs = () => NavServices.toAllDocs(thisTeamsID);
+  $scope.toAllDocs = () => NavServices.go.toAllDocs(thisTeamsID);
 
 ////// ON-PAGE LOAD FUNCTIONS
 
@@ -477,7 +477,7 @@ function(
   TeamFactory.verifyUserAccess(thisTeamsID, loggedInUid)
     // Gets the team's display name
   .then(({displayName}) => $scope.teamName = displayName)
-  .catch(() => NavServices.toTeamsLogin());
+  .catch(() => NavServices.go.toTeamsLogin());
 
 ////// Gets the doc, doc owner's displayName, & doc's segments
   DocFactory.getDoc(thisDocID)

@@ -6,7 +6,7 @@ function(
   NavServices,
   AuthFactory, TeamFactory, UserFactory
 ) {
-  
+
   const loggedInUid = firebase.auth().currentUser.uid;
   $scope.usersTeams = [];
   $scope.newTeams = [];
@@ -27,13 +27,13 @@ function(
     if (password === attempt) {
       users.push(loggedInUid);
       TeamFactory.patchTeam(firebaseID, {users})
-      .then(() => NavServices.toAllDocs(firebaseID))
+      .then(() => NavServices.go.toAllDocs(firebaseID))
       .catch(err => console.log(err));
     }
   };
 
   $scope.userLogout = () =>
-    AuthFactory.logout().then(() => NavServices.toLogin());
+    AuthFactory.logout().then(() => NavServices.go.toLogin());
 
   $scope.revokeAccess = firebaseID =>
     TeamFactory.getTeam(firebaseID)
@@ -44,9 +44,9 @@ function(
     .then(() => $route.reload())
     .catch(err => console.log(err));
 
-  $scope.toTeamRegister = () => NavServices.toTeamRegister();
+  $scope.toTeamRegister = () => NavServices.go.toTeamRegister();
 
-  $scope.toAllDocs = team_id => NavServices.toAllDocs(team_id);
+  $scope.toAllDocs = team_id => NavServices.go.toAllDocs(team_id);
 
   $scope.toggleTeamPasswordInput = team =>
     team.showPasswordInput = team.showPasswordInput ? false : true;
