@@ -17,40 +17,36 @@ angular.module("DocApp", ["ngRoute"])
 .config($routeProvider =>
   $routeProvider
   .when('/login', {
-    templateUrl: "assets/partials/login",
+    templateUrl: "app/components/login/login",
     controller: "LoginCtrl"
   })
-  .when('/register', {
-    templateUrl: "assets/partials/user-register",
-    controller: "UserRegisterCtrl"
-  })
   .when('/team-login', {
-    templateUrl: "assets/partials/team-login",
+    templateUrl: "app/components/login/team-login",
     controller: "TeamLoginCtrl",
     resolve: {isAuth}
   })
   .when('/team-login/register', {
-    templateUrl: "assets/partials/team-register",
+    templateUrl: "app/components/login/team-register",
     controller: "TeamRegisterCtrl",
     resolve: {isAuth}
   })
   .when('/docs/:team_id', {
-    templateUrl: "assets/partials/all-docs",
+    templateUrl: "app/components/all-docs/all-docs",
     controller: "AllDocsCtrl",
     resolve: {isAuth}
   })
   .when('/docs/:team_id/new', {
-    templateUrl: "assets/partials/new-doc",
+    templateUrl: "app/components/new-doc/new-doc",
     controller: "NewDocCtrl",
     resolve: {isAuth}
   })
   .when('/docs/:team_id/pending/:doc_id', {
-    templateUrl: "assets/partials/review",
+    templateUrl: "app/components/review/review",
     controller: "ReviewCtrl",
     resolve: {isAuth}
   })
   .when('/docs/:team_id/completed/:doc_id', {
-    templateUrl: "assets/partials/review",
+    templateUrl: "app/components/review/review",
     controller: "ReviewCtrl",
     resolve: {isAuth}
   })

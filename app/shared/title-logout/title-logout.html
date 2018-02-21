@@ -1,0 +1,7 @@
+<section class="title-logout">
+  <h1 class="title-logout__app-name">{{appTitle}}</h1>
+  <button type="button" name="link" ng-click="switchTeams()" ng-if="team">
+    Switch Teams
+  </button>
+  <button class="title-logout__logout-button" type="button" name="logout" ng-click="logout()" ng-if="!login">Logout</button>
+</section>

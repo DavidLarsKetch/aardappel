@@ -6,7 +6,7 @@ function(
   NavServices,
   AuthFactory, UserFactory
 ) {
-
+  
   $scope.auth = {};
   $scope.user = {};
 

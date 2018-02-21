@@ -3,7 +3,8 @@
 angular.module("DocApp").directive("titleLogout", function () {
   return {
     restrict: 'A',
-    templateUrl: 'assets/partials/title-logout.html',
+    templateUrl:
+      'app/shared/title-logout/title-logout.html',
     controller: "TitleLogoutCtrl"
   };
 });
