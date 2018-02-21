@@ -1,0 +1,15 @@
+.title-logout {
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: .5rem;
+  padding-bottom: .33rem;
+
+  &__app-name {
+    margin: 0;
+    // font-family: some cool font
+  }
+  &__logout-button {
+    margin: auto 0;
+  }
+}
