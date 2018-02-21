@@ -1,13 +1,23 @@
-<div>
-  <div>
-    <input class="main-margin" type="text" name="display-name" placeholder="Display Name" ng-show="registerBool" ng-model="user.displayName">
-  </div>
-  <div>
-    <input class="main-margin" type="email" name="email" placeholder="Email" ng-model="auth.email">
-  </div>
-  <div>
-    <input class="main-margin" type="password" name="password" placeholder="Password" ng-model="auth.password">
-  </div>
+<section class="login">
+  <form ng-enter="registerEmail()" ng-show="registerBool">
+    <div>
+      <input class="main-margin" type="text" name="display-name" placeholder="Display Name" ng-show="registerBool" ng-model="user.displayName">
+    </div>
+    <div>
+      <input class="main-margin" type="email" name="email" placeholder="Email" ng-model="auth.email">
+    </div>
+    <div>
+      <input class="main-margin" type="password" name="password" placeholder="Password" ng-model="auth.password">
+    </div>
+  </form>
+  <form ng-enter="login()" ng-show="!registerBool">
+    <div>
+      <input class="main-margin" type="email" name="email" placeholder="Email" ng-model="auth.email">
+    </div>
+    <div>
+      <input class="main-margin" type="password" name="password" placeholder="Password" ng-model="auth.password">
+    </div>
+  </form>
   <div>
     <button class="main-margin" type="button" name="login" ng-show="!registerBool" ng-click="login()">LOGIN</button>
     <button class="main-margin" type="button" name="button" ng-show="registerBool" ng-click="registerEmail()">CONFIRM</button>
@@ -16,7 +26,4 @@
   <div>
     <button class="main-margin" type="button" name="Register" ng-click="registerBool=true" ng-show="!registerBool">REGISTER</button>
   </div>
-  <!-- <div>
-    <button class="main-margin"  type="button" name="logout" ng-show="!registerBool" ng-click="logout()">LOGOUT</button>
-  </div> -->
-</div>
+</section>
