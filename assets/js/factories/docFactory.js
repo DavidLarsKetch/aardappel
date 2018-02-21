@@ -8,14 +8,6 @@ angular.module("DocApp").factory("DocFactory", function($q, $http, FirebaseCrede
       .catch(err => reject(err))
     );
 
-  const postDoc = data =>
-    $q((resolve, reject) =>
-      $http.post(`${FirebaseCredentials.databaseURL}/docs.json`, JSON.stringify(data))
-      .then(({data}) => attachFirebaseID(data.name))
-      .then(({firebaseID}) => resolve(firebaseID))
-      .catch(err => reject(err))
-    );
-
   const deleteDoc = id =>
     $q((resolve, reject) =>
       $http.delete(`${FirebaseCredentials.databaseURL}/docs/${id}.json`)
@@ -36,13 +28,21 @@ angular.module("DocApp").factory("DocFactory", function($q, $http, FirebaseCrede
       .then(({data}) => resolve(data))
       .catch(err => reject(err))
     );
-
-  const putDoc = doc =>
+    
+  const patchDoc = (id, data) =>
     $q((resolve, reject) =>
-      $http.put(`${FirebaseCredentials.databaseURL}/docs/${doc.firebaseID}.json`, JSON.stringify(doc))
-      .then(() => resolve())
+      $http.patch(`${FirebaseCredentials.databaseURL}/docs/${id}.json`, JSON.stringify(data))
+      .then(({data}) => resolve(data))
       .catch(err => reject(err))
     );
 
-  return {postDoc, putDoc, deleteDoc, getDoc, getDocs};
+  const postDoc = data =>
+    $q((resolve, reject) =>
+      $http.post(`${FirebaseCredentials.databaseURL}/docs.json`, JSON.stringify(data))
+      .then(({data}) => attachFirebaseID(data.name))
+      .then(({firebaseID}) => resolve(firebaseID))
+      .catch(err => reject(err))
+    );
+
+  return {deleteDoc, getDoc, getDocs, patchDoc, postDoc};
 });
