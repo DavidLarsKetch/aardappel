@@ -21,63 +21,6 @@ function(
     .then(segments => $scope.segments = segments)
     .catch(err => console.log(err));
 
-////// Removes or saves temporary edit suggestions
-  const tempSuggestions = {
-    // Removes temporary edit suggestions made by the current user in the
-    // current session
-    delete: segments => {
-      return SegmentFactory.getSegments(thisDocID)
-      .then(segments => {
-        let promises = segments
-    // Finds segments that were marked for deletion
-        .filter(({classes, temp_uid}) =>
-          BoolServices.isUidTemp(temp_uid, loggedInUid) && BoolServices.hasClass(classes, "deleted")
-        )
-    // Removes "classes" & "temp_uid" from that segment
-        .map(({firebaseID}) =>
-          SegmentFactory.patchSegment(
-            firebaseID, {classes: null, temp_uid: null}
-          )
-        );
-    // Finds segments that were marked for addition
-        promises.concat(segments
-          .filter(({classes, temp_uid}) =>
-            BoolServices.isUidTemp(temp_uid, loggedInUid) && BoolServices.hasClass(classes, "added")
-          )
-    // Deletes those segments
-          .map(({firebaseID}) =>
-            SegmentFactory.deleteSegment(firebaseID)
-          )
-        );
-        return $q.all(promises);
-      })
-    // Retrieves the state of the doc
-      .then(() => SegmentFactory.getSegments(thisDocID))
-    // Updates the "doc_order" of the segments according to their final
-    // place in the doc
-      .then(segments => {
-        let promises = segments.map((segment, index) =>
-          SegmentFactory.patchSegment(
-            segment.firebaseID, {doc_order: index}
-          )
-        );
-        return $q.all(promises);
-      });
-    },
-    // Makes edit suggestions permanent for edits made by the current user
-    keep: segments =>
-      SegmentFactory.getSegments(thisDocID)
-      .then(segments => segments
-        .filter(({temp_uid}) =>
-          BoolServices.isUidTemp(temp_uid, loggedInUid)
-        )
-    // Removes "temp_uid", making it a permanent suggestion
-        .map(({firebaseID}) => SegmentFactory.patchSegment(
-          firebaseID, {temp_uid: null}
-        ))
-      )
-  };
-
 ////// Provides functions for updating the doc with suggested additions,
     // deletions and edits
   const updater = {
@@ -199,41 +142,6 @@ function(
   };
 
 ////// PARTIAL-FACING FUNCTIONS
-
-////// Allows cancelling of changes made
-  $scope.cancel = () =>
-    $q.all(tempSuggestions.delete())
-    .then(() => NavServices.toAllDocs(thisTeamsID))
-    .catch(err => console.log(err));
-
-////// Allows user to keep doc in 'pending' without 'cancelling' or
-    // 'completing' the editing
-  $scope.save = () =>
-    $q.all(tempSuggestions.keep())
-    .then(() => NavServices.toAllDocs(thisTeamsID))
-    .catch(err => console.log(err));
-
-  // Moves document from 'pending' to 'completed'
-  $scope.completed = () => {
-    $scope.doc.completed = true;
-    $scope.doc.reviewer = loggedInUid;
-
-    DocFactory.putDoc($scope.doc)
-    .then(() => $q.all(tempSuggestions.keep()))
-    .then(() => NavServices.toAllDocs(thisTeamsID))
-    .catch(err => console.log(err));
-  };
-
-////// Changes doc 'completed' status to false, redirects to
-    // `review-pending` view
-  $scope.rereview = () => {
-    $scope.doc.completed = false;
-    $scope.doc.reviewer = null;
-
-    DocFactory.putDoc($scope.doc)
-    .then(() => NavServices.toDocPending(thisTeamsID, thisDocID))
-    .catch(err => console.log(err));
-  };
 
 ////// Functions for (1) updating edit suggestions, (2) overwriting
     // edit suggestions & (3) creating edit suggestions. After any

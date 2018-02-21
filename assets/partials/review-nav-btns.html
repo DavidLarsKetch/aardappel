@@ -1,0 +1,11 @@
+<section class="review-nav-btns">
+  <div ng-show="!doc.completed">
+    <button type="button" name="completed" ng-click="completed()">Completed</button>
+    <button type="button" name="save" ng-click="save()">Save</button>
+    <button type="button" name="cancel" ng-click="cancel()">Cancel Changes</button>
+  </div>
+  <div ng-show="doc.completed">
+    <button type="button" name="all-docs()" ng-click="toAllDocs()">Back</button>
+    <button type="button" name="rereview" ng-click="rereview()">Send Back to Review</button>
+  </div>
+</section>
