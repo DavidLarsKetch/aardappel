@@ -2,6 +2,5 @@ node_modules/
 dist/
 package-lock.json
 stylesheets/
-assets/config/
-assets/js/config/
+app/values/config/
 .sass-cache/
