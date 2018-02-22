@@ -1,0 +1,21 @@
+<div title-logout></div>
+<section class="team-register">
+  <h2 class="team-register__title">
+    {{team.displayName}}
+  </h2>
+  <form>
+    <div>
+      <input type="text" name="team-name" ng-model="team.displayName" placeholder="Enter Team Name">
+    </div>
+    <div>
+      <input type="password" name="password" ng-model="team.password" placeholder="Enter password">
+    </div>
+    <div>
+      <input type="password" name="reenter" ng-model="reenter" placeholder="Reenter password">
+    </div>
+  </form>
+  <div>
+    <button class="added team-register__btn" type="button" name="submit" ng-click="registerTeam()">Submit</button>
+    <button class="deleted team-register__btn" type="button" name="cancel" ng-click="toTeamsLogin()">Cancel</button>
+  </div>
+</section>
