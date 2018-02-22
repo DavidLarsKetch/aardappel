@@ -381,12 +381,12 @@ function(
 
 ////// ON-PAGE LOAD FUNCTIONS
 
-////// Verifies user has access to team, redirects to team-login if not
-  TeamFactory.verifyUserAccess(thisTeamsID, loggedInUid)
-    // Gets the team's display name
-  .then(({displayName}) => $scope.teamName = displayName)
-  .catch(() => NavServices.go.toTeamsLogin());
-
+// ////// Verifies user has access to team, redirects to team-login if not
+//   TeamFactory.verifyUserAccess(thisTeamsID, loggedInUid)
+//     // Gets the team's display name
+//   .then(({displayName}) => $scope.teamName = displayName)
+//   .catch(() => NavServices.go.toTeamsLogin());
+//
 ////// Gets the doc, doc owner's displayName, & doc's segments
   DocFactory.getDoc(thisDocID)
   .then(doc => {
