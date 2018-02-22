@@ -1,0 +1,59 @@
+.review {
+  &__comment-box {
+    background-color: $commented-yellow;
+    border: $border;
+    margin-bottom: .33rem;
+    min-height: 10vh;
+    padding: .33rem;
+    width: inherit;
+  }
+
+  &__comment-display-name {
+    border-top: 1px solid;
+    font-style: italic;
+    padding-top: .2rem;
+  }
+
+  &__comment-text {
+    font-family: $serif;
+    text-align: left;
+  }
+
+  &__comment-nav-btn {
+    background-color: $commented-yellow;
+  }
+
+  &__doc-author {
+    font-family: $serif;
+    font-style: italic;
+    margin-left: 1.25rem;
+  }
+
+  &__doc-title {
+    font-family: $serif;
+    font-size: 1.5rem;
+  }
+
+  &__inline-comment-box {
+    border: $border;
+    padding: .5rem;
+  }
+
+  &__team-title {
+    margin: 0 0 .33rem 0;
+  }
+
+  &__text {
+    background-color: $offwhite;
+    font: 1.2rem $serif;
+    line-height: 175%;
+    letter-spacing: .05rem;
+    margin-top: .33rem;
+    padding: 0 .33rem;
+    text-align: justify;
+  }
+
+  &__titles {
+    margin: auto 0;
+  }
+}

@@ -1,0 +1,14 @@
+.title-logout {
+  border-bottom: 1px solid #333;
+  margin-bottom: .5rem;
+  padding-bottom: .33rem;
+
+  &__app-name {
+    font-family: $serif;
+    letter-spacing: .2rem;
+    margin: auto 0;
+  }
+  &__buttons {
+    margin: auto 0;
+  }
+}

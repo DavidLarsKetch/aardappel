@@ -6,7 +6,7 @@ module.exports = function(grunt) {
         externalModules: ["ngRoute"]
       },
       app: {
-        src: "./assets/js/**/*.js",
+        src: "./app/**/*.js",
         dest: "./dist/project.js"
       }
     },
@@ -17,18 +17,18 @@ module.exports = function(grunt) {
         globalstrict: true,
         globals: { angular: true }
       },
-      files: ["./assets/js/**/*.js"]
+      files: ["./app/**/*.js"]
     },
     sass: {
       dist: {
         files: {
-          "./assets/stylesheets/main.css": "./assets/sass/main.scss"
+          "./assets/stylesheets/app.css": "./assets/sass/app.scss"
         }
       }
     },
     watch: {
       javascripts: {
-        files: ["./assets/js/**/*.js"],
+        files: ["./app/**/*.js"],
         tasks: ["jshint", "angular-builder"]
       },
       sass: {

@@ -1,0 +1,16 @@
+.team-login {
+
+  button {
+    margin: .33rem 0;
+  }
+
+  h2 {
+    font-family: $serif;
+    letter-spacing: $serif-spacing;
+    margin: .33rem 0;
+  }
+
+  &__input {
+    max-width: 55vw;
+  }
+}

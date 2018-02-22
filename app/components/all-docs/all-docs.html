@@ -1,0 +1,52 @@
+<div title-logout></div>
+<section class="all-docs">
+  <div team-name></div>
+  <div class="all-docs__listing">
+    <section>
+      <h3 class="main-margin">My Documents Pending</h3>
+      <div class="all-docs__doc-section">
+        <span ng-repeat="doc in usersDocs | filter: {completed: false}">
+          <button class="all-docs__doc-btns" ng-click="toDocPending(doc.firebaseID)">
+            {{doc.title}}
+          </button>
+        </span>
+      </div>
+    </section>
+    <section>
+      <h3 class="main-margin">Team Documents Pending</h3>
+      <div class="all-docs__doc-section">
+        <span class="all-docs__doc-section" ng-repeat="doc in teamDocs | filter: {completed: false}">
+          <button class="all-docs__doc-btns" ng-click="toDocPending(doc.firebaseID)">
+            {{doc.title}}
+            <div class="all-docs__doc-display-name">
+              {{doc.displayName}}
+            </div>
+          </button>
+        </span>
+      </div>
+    </section>
+    <section>
+      <h3 class="main-margin">My Documents Completed</h3>
+        <div class="all-docs__doc-section">
+          <span ng-repeat="doc in usersDocs | filter: {completed: true}">
+            <button class="all-docs__doc-btns" ng-click="toDocCompleted(doc.firebaseID)">
+              {{doc.title}}
+            </button>
+          </span>
+        </div>
+    </section>
+    <section>
+      <h3 class="main-margin">Team Documents Completed</h3>
+      <div class="all-docs__doc-section">
+        <span ng-repeat="doc in teamDocs | filter: {completed: true}">
+          <button class="all-docs__doc-btns" ng-click="toDocCompleted(doc.firebaseID)">
+            {{doc.title}}
+            <div class="all-docs__doc-display-name">
+              {{doc.displayName}}
+            </div>
+          </button>
+        </span>
+      </div>
+    </section>
+  </div>
+</section>

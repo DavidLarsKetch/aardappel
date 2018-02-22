@@ -1,0 +1,77 @@
+* :focus {
+  outline: none;
+}
+
+a {
+  color: black;
+  text-decoration: none;
+  :visited {
+    color: black;
+  }
+}
+
+body {
+  background-color: rgba(227, 66, 52, .75);
+  box-sizing: border-box;
+  height: 100vh;
+  margin: 0 auto;
+  padding: 1rem;
+  overflow: auto;
+}
+
+button {
+  border: $border;
+  border-radius: 0px;
+  color: #222;
+  cursor: pointer;
+  font-family: $sans-serif;
+  padding: .5rem;
+}
+
+input {
+  border: $border;
+  font-family: $sans-serif;
+  margin: auto 0px;
+  padding: .25rem;
+}
+
+.added {
+  background-color: $added-green;
+}
+
+.blue-background {
+  background-color: $blue;
+}
+
+.commented {
+  background-color: $commented-yellow;;
+  cursor: pointer;
+}
+
+.container {
+  display: grid;
+  grid: auto 1fr / auto;
+  height: 100%;
+}
+
+.deleted {
+  background-color: $delete-red;
+}
+
+.main-margin {
+  margin: $main-margin;
+}
+
+.no-margin {
+  margin: 0;
+}
+
+.small-btn {
+  font-size: .8rem;
+  padding: .33rem;
+}
+
+.space-between {
+  display: flex;
+  justify-content: space-between;
+}

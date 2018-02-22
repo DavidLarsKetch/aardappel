@@ -1,0 +1,15 @@
+<div title-logout></div>
+<section class="new-doc">
+  <div team-name></div>
+  <div>
+    <button class="added small-btn" type="button" name="submit" ng-click="saveDoc()">Submit</button>
+    <button class="deleted small-btn" type="button" name="cancel" class="delete-red-background" ng-click="deleteDoc()">Cancel</button>
+  </div>
+  <!-- <h2 class="new-doc__title" placeholder="Document Name">{{doc.title}}</h2> -->
+  <div>
+    <input class="new-doc__title-input" type="text" name="doc-name" placeholder="Document Name" ng-model="doc.title">
+  </div>
+  <div class="new-doc__entry-area">
+    <textarea class="new-doc__textarea" ng-model="text"></textarea>
+  </div>
+</section>

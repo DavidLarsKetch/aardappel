@@ -1,0 +1,30 @@
+<div title-logout></div>
+<section class="login">
+  <form class="login__input" ng-enter="registerEmail()" ng-show="registerBool">
+    <div>
+      <input class="main-margin" type="text" name="display-name" placeholder="Display Name" ng-show="registerBool" ng-model="user.displayName">
+    </div>
+    <div>
+      <input class="main-margin" type="email" name="email" placeholder="Email" ng-model="auth.email">
+    </div>
+    <div>
+      <input class="main-margin" type="password" name="password" placeholder="Password" ng-model="auth.password">
+    </div>
+  </form>
+  <form class="login__input" ng-enter="login()" ng-show="!registerBool">
+    <div>
+      <input class="main-margin" type="email" name="email" placeholder="Email" ng-model="auth.email">
+    </div>
+    <div>
+      <input class="main-margin" type="password" name="password" placeholder="Password" ng-model="auth.password">
+    </div>
+  </form>
+  <div>
+    <button class="added login__btn" type="button" name="login" ng-show="!registerBool" ng-click="login()">Login</button>
+    <button class="added main-margin login__btn" type="button" name="button" ng-show="registerBool" ng-click="registerEmail()">Confirm</button>
+    <button class="deleted main-margin login__btn" type="button" name="button" ng-show="registerBool" ng-click="registerBool=false">Cancel</button>
+  </div>
+  <div>
+    <button class="blue-background login__btn" type="button" name="Register" ng-click="registerBool=true" ng-show="!registerBool">Register</button>
+  </div>
+</section>

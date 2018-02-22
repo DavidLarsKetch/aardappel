@@ -1,0 +1,8 @@
+.review-nav-btns {
+  display: flex;
+  justify-content: flex-end;
+
+  &__extra-btn-pad {
+    padding: .5rem 1rem;
+  }
+}
