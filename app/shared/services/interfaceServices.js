@@ -35,13 +35,14 @@ angular.module("DocApp").service("InterfaceServices", function() {
 
   const constructReviewBox = classes =>
     angular.element(
-      `<div id="reviewBox" class="commented inline-comment-box">
-        <span id="updatedReviewText" contenteditable="true" ng-blur="updateReview()">
+      `<div id="reviewBox" class="commented review__inline-comment-box">
+        <span class="review__comment-text" id="updatedReviewText" contenteditable="true" ng-blur="updateReview()">
           {{reviewItem.text}}
         </span>
-        <p>
+        <br>
+        <span class="review__comment-display-name">
           {{reviewItem.displayName}}
-        </p>
+        </span>
       </div>`
     );
 
