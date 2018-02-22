@@ -1,0 +1,10 @@
+.team-name {
+  margin-bottom: .5rem;
+    &__title {
+    display: inline-block;
+    font-family: $serif;
+    font-style: italic;
+    letter-spacing: $serif-spacing;
+    margin: auto 0 auto auto;
+    }
+}
