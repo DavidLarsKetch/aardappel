@@ -1,0 +1,19 @@
+.team-register {
+  display: grid;
+  grid: auto auto 1fr / auto;
+  justify-items: center;
+
+  &__btn {
+    font-size: 1.33rem;
+    margin-top: 2rem;
+  }
+
+  &__title {
+    min-height: 2.5rem;
+  }
+
+  input {
+    font-size: 1rem;
+    margin: .5rem auto;
+  }
+}
