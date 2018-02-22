@@ -1,26 +1,28 @@
 <div title-logout></div>
-<h3 class="title">{{teamName}}</h3>
-<div review-nav-btns></div>
-<div class="doc-title-span">
-  <span>{{doc.title}}</span>
-  <i>{{doc.displayName}}</i>
-</div>
-<div class="review-buttons">
-  <div ng-show="!doc.completed">
-    <button class="commented" type="button" name="comment" ng-click="toggleCommentBox()">Comment</button>
+<section class="review">
+  <div team-name></div>
+  <div review-nav-btns></div>
+  <div class="space-between main-margin">
+    <div ng-show="!doc.completed">
+      <button class="commented" type="button" name="comment" ng-click="toggleCommentBox()">Comment</button>
+    </div>
+    <div ng-show="doc.completed">
+      <button class="review__comment-nav-btn" type="button" name="previous" ng-click="prevComment()">Prev.</button>
+      <button class="review__comment-nav-btn" type="button" name="next" ng-click="nextComment()">Next</button>
+    </div>
+    <div class="review__titles">
+      <span class="review__doc-title">{{doc.title}}</span>
+      <span class="review__doc-author">{{doc.displayName}}</span>
+    </div>
   </div>
-  <div ng-show="doc.completed">
-    <button type="button" name="previous" ng-click="prevComment()">Prev. Comment</button>
-    <button type="button" name="next" ng-click="nextComment()">Next Comment</button>
+  <div ng-show="commentActive">
+    <div id="newCommentBox" class="review__comment-box" contenteditable="true">
+    </div>
+    <button class="added small-btn" type="button" name="save" ng-click="saveComment()">Save</button>
+    <button class="deleted small-btn" type="button" name="cancel" ng-click="toggleCommentBox()">Cancel</button>
   </div>
-</div>
-<div ng-show="commentActive" class="new-comment-wrapper">
-  <div id="newCommentBox" class="new-comment-box" contenteditable="true">
   </div>
-  <button type="button" name="save" ng-click="saveComment()">Save</button>
-  <button type="button" name="cancel" ng-click="toggleCommentBox()">Cancel</button>
-</div>
-</div>
-<div class="text-wrapper">
-  <span ng-repeat="segment in segments" id="{{segment.firebaseID}}" class="{{segment.classes}}" contenteditable="true" ng-blur="diff(segment.firebaseID, segment.text)" ng-click="toggleReviewBox(segment)">{{segment.text}} </span>
-</div>
+  <div class="review__text">
+    <span ng-repeat="segment in segments" id="{{segment.firebaseID}}" class="{{segment.classes}}" contenteditable="true" ng-blur="diff(segment.firebaseID, segment.text)" ng-click="toggleReviewBox(segment)">{{segment.text}} </span>
+  </div>
+</section>
