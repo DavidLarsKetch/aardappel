@@ -3,6 +3,8 @@
 ## Summary
 Aardappel is a tool for writing teams to suggest edits to each other's work in a stream-lined, mobile-friendly manner. A writer or editor can create and join multiple writing teams and post, edit and approve documents on those respective teams. Unlike popular desktop applications or web-browser applications like Microsoft Word or Google Docs, Aardappel delivers an intuitive, distraction-free experience to its users' mobile devices.
 
+Aardappel is a single-page application built on `AngularJS`, `SASS`, and `Firebase`.
+
 ## Live Demo
 1. Go to (aardappel-nss.firebaseapp.com) *Google Chrome support only*
 1. EITHER (1) register a new user OR (2) logon with `a@a.com`, `b@b.com`, `c@c,com`, `d@d.com`, or `e@e.com` (password: `password`)
@@ -33,7 +35,7 @@ Aardappel was the first, extensive project I built without a team. I built this 
   - I pushed the envelope on what I knew about JavaScript ES6 and beyond while staying within the `AngularJS` way. Knowing the ins-and-outs of each was pivotal
 
 - At Least it Floats
-  - Using `AngularJS` is like an archaelogical dig. I reached new heights by learning how to build custom directives, services, etc.
+  - Using `AngularJS` is like an archaelogical dig; some of its solutions are useful, but new frameworks provide more innovative solutions. I reached new depths of understanding by learning how to build custom directives, services, etc.
 
 ### Lessons Learned
 - Know why you're using a technology
